@@ -1,0 +1,227 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root, html {
+    color-scheme: light only;
+    /* Premium Platinum & Gold Palette - HSL values */
+    --background: 0 0% 98%;
+    --foreground: 240 10% 15%;
+    --card: 0 0% 100%;
+    --card-foreground: 240 10% 15%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 10% 15%;
+    --primary: 240 10% 15%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 240 4% 95%;
+    --secondary-foreground: 240 6% 25%;
+    --muted: 240 4% 97%;
+    --muted-foreground: 240 4% 46%;
+    --accent: 240 4% 95%;
+    --accent-foreground: 240 10% 15%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 240 6% 90%;
+    --input: 240 6% 90%;
+    --ring: 240 10% 15%;
+    --radius: 0.75rem;
+    
+    /* Gold System - Remapped to neutral grayscale for portal */
+    --gold-50: 0 0% 97%;
+    --gold-100: 0 0% 93%;
+    --gold-200: 0 0% 87%;
+    --gold-300: 0 0% 77%;
+    --gold-400: 0 0% 60%;
+    --gold-500: 0 0% 46%;
+    --gold-600: 0 0% 34%;
+    --gold-700: 0 0% 25%;
+    --gold-800: 0 0% 17%;
+    --gold-900: 0 0% 12%;
+    --gold-950: 0 0% 8%;
+    
+    /* Platinum System - Sophisticated silver-grays */
+    --platinum-50: 240 9% 98%;
+    --platinum-100: 240 8% 95%;
+    --platinum-200: 240 6% 90%;
+    --platinum-300: 240 5% 84%;
+    --platinum-400: 240 5% 65%;
+    --platinum-500: 240 4% 46%;
+    --platinum-600: 240 5% 34%;
+    --platinum-700: 240 6% 25%;
+    --platinum-800: 240 7% 17%;
+    --platinum-900: 240 8% 12%;
+    --platinum-950: 240 10% 8%;
+    
+    /* Sophisticated Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(240 10% 15%) 0%, hsl(240 8% 25%) 100%);
+    --gradient-gold: linear-gradient(135deg, hsl(0 0% 11%) 0%, hsl(0 0% 18%) 100%);
+    --gradient-platinum: linear-gradient(135deg, hsl(240 9% 98%) 0%, hsl(240 6% 90%) 100%);
+    --gradient-surface: linear-gradient(135deg, hsl(0 0% 100%) 0%, hsl(240 4% 97%) 100%);
+    --gradient-gold-subtle: linear-gradient(135deg, hsl(0 0% 97%) 0%, hsl(0 0% 93%) 100%);
+    
+    /* Enhanced Color Palette for Portal */
+    --portal-blue: 217 91% 60%;
+    --portal-blue-light: 213 94% 68%;
+    --portal-teal: 173 80% 40%;
+    --portal-teal-light: 172 66% 50%;
+    --portal-purple: 271 81% 56%;
+    --portal-purple-light: 270 77% 65%;
+    --portal-rose: 350 89% 60%;
+    --portal-rose-light: 348 83% 68%;
+    --portal-amber: 38 92% 50%;
+    --portal-amber-light: 43 96% 56%;
+    --portal-emerald: 160 84% 39%;
+    --portal-emerald-light: 158 64% 52%;
+    
+    /* Premium Shadows */
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --shadow-base: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+    --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+    --shadow-2xl: 0 25px 50px -12px rgb(0 0 0 / 0.25);
+    --shadow-gold: 0 10px 25px -3px hsl(0 0% 11% / 0.15), 0 4px 6px -2px hsl(0 0% 11% / 0.08);
+    --shadow-gold-lg: 0 20px 40px -4px hsl(0 0% 11% / 0.2), 0 8px 12px -4px hsl(0 0% 11% / 0.12);
+    --shadow-platinum: 0 10px 25px -3px hsl(240 5% 34% / 0.1), 0 4px 6px -2px hsl(240 5% 34% / 0.05);
+    --shadow-blue: 0 10px 25px -3px hsl(217 91% 60% / 0.2), 0 4px 6px -2px hsl(217 91% 60% / 0.1);
+    --shadow-teal: 0 10px 25px -3px hsl(173 80% 40% / 0.2), 0 4px 6px -2px hsl(173 80% 40% / 0.1);
+    --shadow-purple: 0 10px 25px -3px hsl(271 81% 56% / 0.2), 0 4px 6px -2px hsl(271 81% 56% / 0.1);
+  }
+
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-feature-settings: "cv01", "cv03", "cv04", "cv11";
+    font-variation-settings: normal;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    font-weight: 600;
+    letter-spacing: -0.025em;
+    line-height: 1.2;
+  }
+  
+  .text-gradient-gold {
+    background: linear-gradient(135deg, hsl(0 0% 11%), hsl(0 0% 18%));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  
+  .shadow-luxury {
+    box-shadow: var(--shadow-2xl);
+  }
+  
+  .shadow-gold {
+    box-shadow: var(--shadow-gold);
+  }
+  
+  .shadow-gold-lg {
+    box-shadow: var(--shadow-gold-lg);
+  }
+}
+
+/* Page transition */
+.page-transition {
+  animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Custom animations */
+@keyframes scroll {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-33.33%); }
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+html {
+  font-size: var(--font-size);
+}
+
+/* Safe area for mobile devices */
+.safe-area-inset-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* Hide scrollbar for tabs and horizontal scroll areas */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+@keyframes bell-shake {
+  0%, 100% { transform: rotate(0deg); }
+  10% { transform: rotate(14deg); }
+  20% { transform: rotate(-14deg); }
+  30% { transform: rotate(10deg); }
+  40% { transform: rotate(-10deg); }
+  50% { transform: rotate(6deg); }
+  60% { transform: rotate(-6deg); }
+  70% { transform: rotate(2deg); }
+  80% { transform: rotate(-2deg); }
+  90% { transform: rotate(0deg); }
+}
+
+.animate-bell-shake {
+  animation: bell-shake 0.8s ease-in-out;
+  transform-origin: top center;
+}
+/* VaultPage performance-optimized CSS animations */
+@keyframes vault-float {
+  0%, 100% { transform: translateY(0) scale(0.5); opacity: 0.3; }
+  50% { transform: translateY(-20px) scale(1); opacity: 0.8; }
+}
+
+@keyframes vault-speed-line {
+  0% { transform: translateY(-300px); opacity: 0; }
+  20% { opacity: 1; }
+  80% { opacity: 1; }
+  100% { transform: translateY(calc(100vh + 300px)); opacity: 0; }
+}
+
+.vault-particle {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  background: rgba(212, 175, 55, 0.3);
+  border-radius: 50%;
+  animation: vault-float 4s ease-in-out infinite;
+  will-change: transform, opacity;
+}
+
+.vault-speed-line {
+  position: absolute;
+  width: 4px;
+  height: 300px;
+  background: linear-gradient(to bottom, transparent, rgba(212, 175, 55, 0.6), transparent);
+  animation: vault-speed-line linear infinite;
+  will-change: transform, opacity;
+}
+
+@keyframes vault-bookshelf-fade {
+  0% { transform: scaleX(1); opacity: 0.3; }
+  50% { transform: scaleX(0.5); opacity: 1; }
+  100% { transform: scaleX(0.3); opacity: 0; }
+}
