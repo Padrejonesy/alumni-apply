@@ -1055,14 +1055,16 @@ export function TutorApplicationPage() {
             <label className={labelClasses}>
               When are you available to tutor? <span className="text-[#86868B]">*</span>
             </label>
-            <p className="text-[13px] text-[#AEAEB2] mb-3">Click or drag to select your available time slots. Most students need tutoring between 3-9 PM on weekdays.</p>
-            <div className="border border-[#E5E5EA] rounded-[12px] overflow-hidden">
+            <p className="text-[13px] text-[#AEAEB2] mb-3">Click to select your available time slots. Most students need tutoring between 3-9 PM on weekdays.</p>
+            <div className="border border-[#E5E5EA] rounded-[12px] overflow-x-auto">
               {/* Time header */}
-              <div className="flex bg-[#F5F5F7]">
-                <div className="w-16 sm:w-20 flex-shrink-0 p-2 text-[11px] font-medium text-[#86868B]" />
-                {['3 PM', '4 PM', '5 PM', '6 PM', '7 PM', '8 PM', '9 PM', '10 PM'].map(t => (
-                  <div key={t} className="flex-1 p-1.5 text-[10px] sm:text-[11px] text-center text-[#86868B] font-medium border-l border-[#E5E5EA]/50">{t}</div>
-                ))}
+              <div className="flex bg-[#F5F5F7] min-w-[700px]">
+                <div className="w-14 flex-shrink-0 p-2 text-[11px] font-medium text-[#86868B]" />
+                {Array.from({ length: 17 }, (_, i) => {
+                  const h = i + 7;
+                  const label = h === 12 ? '12 PM' : h > 12 ? `${h - 12} PM` : `${h} AM`;
+                  return <div key={h} className="flex-1 p-1 text-[9px] sm:text-[10px] text-center text-[#86868B] font-medium border-l border-[#E5E5EA]/50">{label}</div>;
+                })}
               </div>
               {/* Day rows */}
               {[
@@ -1071,13 +1073,18 @@ export function TutorApplicationPage() {
                 { key: 'friday', label: 'Fri' }, { key: 'saturday', label: 'Sat' },
                 { key: 'sunday', label: 'Sun' },
               ].map(day => (
-                <div key={day.key} className="flex border-t border-[#E5E5EA]/50">
-                  <div className="w-16 sm:w-20 flex-shrink-0 p-2 text-[12px] font-medium text-[#1D1D1F] flex items-center">{day.label}</div>
-                  {['15:00', '15:30', '16:00', '16:30', '17:00', '17:30', '18:00', '18:30', '19:00', '19:30', '20:00', '20:30', '21:00', '21:30', '22:00', '22:30'].map(time => {
+                <div key={day.key} className="flex border-t border-[#E5E5EA]/50 min-w-[700px]">
+                  <div className="w-14 flex-shrink-0 p-1.5 text-[12px] font-medium text-[#1D1D1F] flex items-center">{day.label}</div>
+                  {Array.from({ length: 34 }, (_, i) => {
+                    const totalMin = 7 * 60 + i * 30;
+                    const h = Math.floor(totalMin / 60);
+                    const m = totalMin % 60;
+                    const time = `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
                     const slotKey = `${day.key}-${time}`;
                     const isSelected = formData.availabilitySchedule.includes(slotKey);
-                    // Only show hour borders
-                    const isHourStart = time.endsWith(':00');
+                    const isHourStart = m === 0;
+                    const displayH = h > 12 ? h - 12 : h === 0 ? 12 : h;
+                    const ampm = h >= 12 ? 'PM' : 'AM';
                     return (
                       <button
                         key={slotKey}
@@ -1088,12 +1095,10 @@ export function TutorApplicationPage() {
                             ? prev.availabilitySchedule.filter(s => s !== slotKey)
                             : [...prev.availabilitySchedule, slotKey],
                         }))}
-                        className={`flex-1 h-8 transition-colors ${isHourStart ? 'border-l border-[#E5E5EA]/50' : ''} ${
-                          isSelected
-                            ? 'bg-[#1D1D1F]'
-                            : 'bg-white hover:bg-[#F0F0F5]'
+                        className={`flex-1 h-7 transition-colors ${isHourStart ? 'border-l border-[#E5E5EA]/50' : ''} ${
+                          isSelected ? 'bg-[#1D1D1F]' : 'bg-white hover:bg-[#F0F0F5]'
                         }`}
-                        title={`${day.label} ${parseInt(time) > 12 ? parseInt(time) - 12 : parseInt(time)}:${time.split(':')[1]} ${parseInt(time) >= 12 ? 'PM' : 'AM'}`}
+                        title={`${day.label} ${displayH}:${m.toString().padStart(2, '0')} ${ampm}`}
                       />
                     );
                   })}
