@@ -1050,34 +1050,62 @@ export function TutorApplicationPage() {
             </div>
           </div>
 
-          {/* Availability */}
+          {/* Availability — Weekly Time Grid */}
           <div className="mb-5">
             <label className={labelClasses}>
               When are you available to tutor? <span className="text-[#86868B]">*</span>
             </label>
-            <p className="text-[13px] text-[#AEAEB2] mb-3">Select all time slots that work for you.</p>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-              {['Weekday Mornings', 'Weekday Afternoons', 'Weekday Evenings', 'Saturday Mornings', 'Saturday Afternoons', 'Sunday Afternoons'].map(slot => (
-                <button
-                  key={slot}
-                  type="button"
-                  aria-pressed={formData.availabilitySchedule.includes(slot)}
-                  onClick={() => setFormData(prev => ({
-                    ...prev,
-                    availabilitySchedule: prev.availabilitySchedule.includes(slot)
-                      ? prev.availabilitySchedule.filter(s => s !== slot)
-                      : [...prev.availabilitySchedule, slot],
-                  }))}
-                  className={`text-left px-3 py-2 rounded-[8px] text-[13px] transition-colors border ${
-                    formData.availabilitySchedule.includes(slot)
-                      ? 'bg-[#1D1D1F] text-white border-[#1D1D1F]'
-                      : 'bg-white text-[#1D1D1F] border-[#E5E5EA] hover:border-[#D1D1D6]'
-                  }`}
-                >
-                  {slot}
-                </button>
+            <p className="text-[13px] text-[#AEAEB2] mb-3">Click or drag to select your available time slots. Most students need tutoring between 3-9 PM on weekdays.</p>
+            <div className="border border-[#E5E5EA] rounded-[12px] overflow-hidden">
+              {/* Time header */}
+              <div className="flex bg-[#F5F5F7]">
+                <div className="w-16 sm:w-20 flex-shrink-0 p-2 text-[11px] font-medium text-[#86868B]" />
+                {['3 PM', '4 PM', '5 PM', '6 PM', '7 PM', '8 PM', '9 PM', '10 PM'].map(t => (
+                  <div key={t} className="flex-1 p-1.5 text-[10px] sm:text-[11px] text-center text-[#86868B] font-medium border-l border-[#E5E5EA]/50">{t}</div>
+                ))}
+              </div>
+              {/* Day rows */}
+              {[
+                { key: 'monday', label: 'Mon' }, { key: 'tuesday', label: 'Tue' },
+                { key: 'wednesday', label: 'Wed' }, { key: 'thursday', label: 'Thu' },
+                { key: 'friday', label: 'Fri' }, { key: 'saturday', label: 'Sat' },
+                { key: 'sunday', label: 'Sun' },
+              ].map(day => (
+                <div key={day.key} className="flex border-t border-[#E5E5EA]/50">
+                  <div className="w-16 sm:w-20 flex-shrink-0 p-2 text-[12px] font-medium text-[#1D1D1F] flex items-center">{day.label}</div>
+                  {['15:00', '15:30', '16:00', '16:30', '17:00', '17:30', '18:00', '18:30', '19:00', '19:30', '20:00', '20:30', '21:00', '21:30', '22:00', '22:30'].map(time => {
+                    const slotKey = `${day.key}-${time}`;
+                    const isSelected = formData.availabilitySchedule.includes(slotKey);
+                    // Only show hour borders
+                    const isHourStart = time.endsWith(':00');
+                    return (
+                      <button
+                        key={slotKey}
+                        type="button"
+                        onClick={() => setFormData(prev => ({
+                          ...prev,
+                          availabilitySchedule: prev.availabilitySchedule.includes(slotKey)
+                            ? prev.availabilitySchedule.filter(s => s !== slotKey)
+                            : [...prev.availabilitySchedule, slotKey],
+                        }))}
+                        className={`flex-1 h-8 transition-colors ${isHourStart ? 'border-l border-[#E5E5EA]/50' : ''} ${
+                          isSelected
+                            ? 'bg-[#1D1D1F]'
+                            : 'bg-white hover:bg-[#F0F0F5]'
+                        }`}
+                        title={`${day.label} ${parseInt(time) > 12 ? parseInt(time) - 12 : parseInt(time)}:${time.split(':')[1]} ${parseInt(time) >= 12 ? 'PM' : 'AM'}`}
+                      />
+                    );
+                  })}
+                </div>
               ))}
             </div>
+            {formData.availabilitySchedule.length > 0 && (
+              <div className="flex items-center justify-between mt-2">
+                <p className="text-[12px] text-[#86868B]">{formData.availabilitySchedule.length} slots selected ({Math.round(formData.availabilitySchedule.length * 0.5)} hours/week)</p>
+                <button type="button" onClick={() => setFormData(prev => ({ ...prev, availabilitySchedule: [] }))} className="text-[12px] text-[#0066CC] hover:underline">Clear all</button>
+              </div>
+            )}
           </div>
 
           {/* Bio */}
