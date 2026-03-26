@@ -32,7 +32,6 @@ export function TutorApplicationPage() {
 
   // Specific prompts per AP subject (all 40 official College Board AP exams)
   const topicPrompts: Record<string, string> = {
-    'African American Studies': "Explain the significance of the Harlem Renaissance to a student who doesn't understand why it matters. Connect the cultural movement to broader themes of identity, resistance, and American history.",
     'Art History': "A student is confused about the difference between Baroque and Renaissance art. Explain the key visual and thematic differences using specific examples of famous works.",
     'Biology': "Explain how DNA replication works to a student who keeps confusing it with transcription. Walk them through the steps and help them understand why it's semiconservative.",
     'Calculus AB': "A student is confused about the difference between average rate of change and instantaneous rate of change. Explain derivatives starting from the concept of slope and build up to the limit definition.",
@@ -115,7 +114,7 @@ export function TutorApplicationPage() {
   const maxTopics = Math.min(3, formData.apScores.length);
 
   const apClassOptions = [
-    'African American Studies', 'Art History', 'Biology', 'Calculus AB', 'Calculus BC',
+    'Art History', 'Biology', 'Calculus AB', 'Calculus BC',
     'Chemistry', 'Chinese Language and Culture', 'Comparative Government and Politics',
     'Computer Science A', 'Computer Science Principles', 'English Language and Composition',
     'English Literature and Composition', 'Environmental Science', 'European History',
