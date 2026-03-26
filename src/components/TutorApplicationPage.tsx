@@ -427,16 +427,9 @@ export function TutorApplicationPage() {
         videoPaths.push(storagePath);
       }
 
-      // Store all video paths
+      // Store all video paths via RPC (bypasses RLS)
       const videoUrl = videoPaths.join(',');
-      const { error: updateErr } = await supabase.from("tutor_applications")
-        .update({ teaching_video_url: videoUrl })
-        .eq("id", applicationId);
-
-      if (updateErr) {
-        console.error("Failed to save video URL:", updateErr);
-        // Fallback: pass video paths directly to the evaluate function
-      }
+      await supabase.rpc('set_application_video_url', { app_id: applicationId, video_url: videoUrl });
 
       const res = await fetch("https://xvmsoedgbwokcnlsywom.supabase.co/functions/v1/evaluate-teaching-video", {
         method: "POST",
