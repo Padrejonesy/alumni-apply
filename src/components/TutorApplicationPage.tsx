@@ -399,22 +399,26 @@ export function TutorApplicationPage() {
     setStep('evaluating');
 
     try {
-      // Combine all recorded blobs into one
+      // Upload each teaching demo separately to avoid file size limits
       const detectedMime = recordingMimeTypeRef.current;
       const fileExt = detectedMime.includes('mp4') ? 'mp4' : 'webm';
-      const combinedBlob = new Blob(recordedBlobs, { type: detectedMime });
-      const fileName = `${Date.now()}-teaching-demo.${fileExt}`;
-      const storagePath = `teaching-videos/${fileName}`;
+      const videoPaths: string[] = [];
 
-      const { error: uploadErr } = await supabase.storage
-        .from("session-files")
-        .upload(storagePath, combinedBlob, { contentType: detectedMime });
+      for (let i = 0; i < recordedBlobs.length; i++) {
+        const fileName = `${Date.now()}-demo-${i + 1}.${fileExt}`;
+        const storagePath = `teaching-videos/${fileName}`;
 
-      if (uploadErr) throw uploadErr;
+        const { error: uploadErr } = await supabase.storage
+          .from("session-files")
+          .upload(storagePath, recordedBlobs[i], { contentType: detectedMime });
 
-      // Store the raw storage path (not a signed URL that expires)
+        if (uploadErr) throw uploadErr;
+        videoPaths.push(storagePath);
+      }
+
+      // Store all video paths (comma-separated for backward compat)
       await supabase.from("tutor_applications")
-        .update({ teaching_video_url: storagePath })
+        .update({ teaching_video_url: videoPaths.join(',') })
         .eq("id", applicationId);
 
       const res = await fetch("https://xvmsoedgbwokcnlsywom.supabase.co/functions/v1/evaluate-teaching-video", {
