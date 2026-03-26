@@ -537,9 +537,6 @@ export function TutorApplicationPage() {
             ))}
           </div>
           <div className="flex justify-center gap-3">
-            <button onClick={retakeAll} className="px-6 py-3 bg-[#F5F5F7] text-[#1D1D1F] text-[15px] font-medium rounded-full hover:bg-[#E8E8ED] transition-colors">
-              Retake All
-            </button>
             <button onClick={submitVideos} disabled={isUploading} className="px-6 py-3 bg-[#1D1D1F] text-white text-[15px] font-medium rounded-full hover:bg-[#2D2D2F] transition-colors flex items-center gap-2 disabled:opacity-50">
               {isUploading ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
               Submit Application
