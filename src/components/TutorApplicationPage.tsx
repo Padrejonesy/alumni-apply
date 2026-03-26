@@ -173,11 +173,23 @@ export function TutorApplicationPage() {
       toast({ title: "Please complete test scores", description: "Fill in all sections for each test, or select 'Did not take'.", variant: "destructive" });
       return;
     }
-    if (!formData.firstName || !formData.lastName || !formData.gender || !formData.email || !formData.phone || !formData.graduationYear || formData.apScores.length === 0 || formData.preferredSubjects.length === 0 || formData.availabilitySchedule.length === 0) {
+    if (!formData.firstName || !formData.lastName || !formData.gender || !formData.email || !formData.phone || !formData.graduationYear || !formData.highSchool || !formData.college || !formData.major || !formData.referralSource || formData.apScores.length === 0 || formData.preferredSubjects.length === 0 || formData.availabilitySchedule.length === 0) {
       toast({
         title: "Please fill in all required fields",
         variant: "destructive",
       });
+      return;
+    }
+
+    const bioWordCount = formData.bio.trim().split(/\s+/).filter(Boolean).length;
+    if (bioWordCount < 50) {
+      toast({ title: "About Yourself is too short", description: `Please write at least 50 words (currently ${bioWordCount}).`, variant: "destructive" });
+      return;
+    }
+
+    const expWordCount = formData.priorExperience.trim().split(/\s+/).filter(Boolean).length;
+    if (expWordCount < 30) {
+      toast({ title: "Prior Experience is too short", description: `Please write at least 30 words (currently ${expWordCount}).`, variant: "destructive" });
       return;
     }
 
@@ -782,12 +794,16 @@ export function TutorApplicationPage() {
             </label>
             <input
               id="highSchool"
-              placeholder="e.g., Staples High School"
+              list="highSchoolOptions"
+              placeholder="Start typing your high school..."
               className={inputClasses}
               value={formData.highSchool}
               onChange={(e) => setFormData((prev) => ({ ...prev, highSchool: e.target.value }))}
               required
             />
+            <datalist id="highSchoolOptions">
+              {['Darien High School','Greenwich High School','New Canaan High School','Ridgefield High School','Staples High School','Brunswick School','Choate Rosemary Hall','Fairfield Prep','Fox Lane High School','GCDS','Hackley School','King School','New Canaan Country School','Rye Country Day School','Sacred Heart Greenwich','St. Luke\'s School','St. Mark\'s School','Weston High School','Wilton High School'].map(s => <option key={s} value={s} />)}
+            </datalist>
           </div>
 
           {/* College */}
@@ -797,12 +813,16 @@ export function TutorApplicationPage() {
             </label>
             <input
               id="college"
-              placeholder="e.g., Harvard University"
+              list="collegeOptions"
+              placeholder="Start typing your college..."
               className={inputClasses}
               value={formData.college}
               onChange={(e) => setFormData((prev) => ({ ...prev, college: e.target.value }))}
               required
             />
+            <datalist id="collegeOptions">
+              {['Amherst College','Boston College','Boston University','Bowdoin College','Brown University','Bucknell University','Claremont McKenna College','Colby College','Colgate University','Columbia University','Connecticut College','Cornell University','Dartmouth College','Davidson College','Duke University','Emory University','Fairfield University','Fordham University','George Washington University','Georgetown University','Georgia Tech','Hamilton College','Harvard University','Holy Cross','Indiana University','Johns Hopkins University','Lafayette College','Lehigh University','Middlebury College','MIT','New York University','Northwestern University','Notre Dame','Penn State','Princeton University','Providence College','Rice University','SMU','Stanford University','Syracuse University','Trinity College','Tufts University','Tulane University','UC Berkeley','UCLA','UConn','University of Michigan','University of Pennsylvania','University of Richmond','University of Virginia','University of Wisconsin','USC','Vanderbilt University','Vassar College','Villanova University','Wake Forest University','Washington and Lee University','Washington University in St. Louis','Wellesley College','Wesleyan University','Williams College','Yale University'].map(s => <option key={s} value={s} />)}
+            </datalist>
           </div>
 
           {/* Major / Minor */}
@@ -813,22 +833,30 @@ export function TutorApplicationPage() {
               </label>
               <input
                 id="major"
-                placeholder="e.g., Economics"
+                list="majorOptions"
+                placeholder="Start typing your major..."
                 className={inputClasses}
                 value={formData.major}
                 onChange={(e) => setFormData((prev) => ({ ...prev, major: e.target.value }))}
                 required
               />
+              <datalist id="majorOptions">
+                {['Accounting','Anthropology','Applied Mathematics','Architecture','Art History','Biochemistry','Biology','Biomedical Engineering','Business Administration','Chemical Engineering','Chemistry','Civil Engineering','Classics','Cognitive Science','Communications','Computer Engineering','Computer Science','Data Science','Earth Science','Economics','Education','Electrical Engineering','English','Environmental Science','Environmental Studies','Film Studies','Finance','French','Gender Studies','German','Government','History','Human Biology','Industrial Engineering','Information Science','International Relations','Italian','Journalism','Kinesiology','Latin American Studies','Linguistics','Management','Marketing','Mathematics','Mechanical Engineering','Media Studies','Music','Neuroscience','Nursing','Nutrition','Philosophy','Physics','Political Science','Pre-Med','Psychology','Public Health','Public Policy','Religious Studies','Sociology','Spanish','Statistics','Theater','Urban Studies'].map(s => <option key={s} value={s} />)}
+              </datalist>
             </div>
             <div>
               <label htmlFor="minor" className={labelClasses}>Minor</label>
               <input
                 id="minor"
-                placeholder="e.g., Mathematics"
+                list="minorOptions"
+                placeholder="Start typing your minor..."
                 className={inputClasses}
                 value={formData.minor}
                 onChange={(e) => setFormData((prev) => ({ ...prev, minor: e.target.value }))}
               />
+              <datalist id="minorOptions">
+                {['Accounting','Anthropology','Applied Mathematics','Architecture','Art History','Biochemistry','Biology','Business','Chemistry','Classics','Cognitive Science','Communications','Computer Science','Data Science','Economics','Education','English','Environmental Science','Film Studies','Finance','French','German','Government','History','Italian','Journalism','Linguistics','Marketing','Mathematics','Music','Neuroscience','Philosophy','Physics','Political Science','Psychology','Public Health','Public Policy','Religious Studies','Sociology','Spanish','Statistics','Theater','Urban Studies'].map(s => <option key={s} value={s} />)}
+              </datalist>
             </div>
           </div>
 
@@ -1128,14 +1156,18 @@ export function TutorApplicationPage() {
 
           {/* Bio */}
           <div className="mb-5">
-            <label htmlFor="bio" className={labelClasses}>About You</label>
+            <label htmlFor="bio" className={labelClasses}>About Yourself <span className="text-[#86868B]">*</span></label>
             <textarea
               id="bio"
-              placeholder="Tell us about your background, teaching experience, and why you want to tutor..."
+              placeholder="Tell us about your background, teaching philosophy, and why you want to tutor. What makes you a great fit for Alumni Tutoring? (minimum 50 words)"
               className={`${inputClasses} min-h-[120px] resize-y`}
               value={formData.bio}
               onChange={(e) => setFormData((prev) => ({ ...prev, bio: e.target.value }))}
+              required
             />
+            <p className={`text-[11px] mt-1 ${formData.bio.trim().split(/\s+/).filter(Boolean).length >= 50 ? 'text-green-600' : 'text-[#AEAEB2]'}`}>
+              {formData.bio.trim().split(/\s+/).filter(Boolean).length}/50 words minimum
+            </p>
           </div>
 
           {/* LinkedIn */}
@@ -1153,14 +1185,18 @@ export function TutorApplicationPage() {
 
           {/* Prior Experience */}
           <div className="mb-5">
-            <label htmlFor="priorExperience" className={labelClasses}>Prior Tutoring Experience</label>
+            <label htmlFor="priorExperience" className={labelClasses}>Prior Tutoring Experience <span className="text-[#86868B]">*</span></label>
             <textarea
               id="priorExperience"
-              placeholder="Describe any prior tutoring, teaching, or mentoring experience you have..."
+              placeholder="Describe any prior tutoring, teaching, or mentoring experience. Include subjects taught, ages/grades, duration, and any results or impact. (minimum 30 words)"
               className={`${inputClasses} min-h-[120px] resize-y`}
               value={formData.priorExperience}
               onChange={(e) => setFormData((prev) => ({ ...prev, priorExperience: e.target.value }))}
+              required
             />
+            <p className={`text-[11px] mt-1 ${formData.priorExperience.trim().split(/\s+/).filter(Boolean).length >= 30 ? 'text-green-600' : 'text-[#AEAEB2]'}`}>
+              {formData.priorExperience.trim().split(/\s+/).filter(Boolean).length}/30 words minimum
+            </p>
           </div>
 
           {/* Reference */}
@@ -1190,14 +1226,16 @@ export function TutorApplicationPage() {
 
           {/* How did you hear about us */}
           <div className="mb-5">
-            <label htmlFor="referralSource" className={labelClasses}>How did you hear about us?</label>
+            <label htmlFor="referralSource" className={labelClasses}>How did you hear about us? <span className="text-[#86868B]">*</span></label>
             <select
               id="referralSource"
               className={inputClasses}
               value={formData.referralSource}
               onChange={(e) => setFormData((prev) => ({ ...prev, referralSource: e.target.value }))}
+              required
             >
               <option value="">Select one</option>
+              <option value="Recruiter">Recruiter</option>
               <option value="Instagram">Instagram</option>
               <option value="Friend/Referral">Friend / Referral</option>
               <option value="School">School</option>
