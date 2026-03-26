@@ -427,10 +427,16 @@ export function TutorApplicationPage() {
         videoPaths.push(storagePath);
       }
 
-      // Store all video paths (comma-separated for backward compat)
-      await supabase.from("tutor_applications")
-        .update({ teaching_video_url: videoPaths.join(',') })
+      // Store all video paths
+      const videoUrl = videoPaths.join(',');
+      const { error: updateErr } = await supabase.from("tutor_applications")
+        .update({ teaching_video_url: videoUrl })
         .eq("id", applicationId);
+
+      if (updateErr) {
+        console.error("Failed to save video URL:", updateErr);
+        // Fallback: pass video paths directly to the evaluate function
+      }
 
       const res = await fetch("https://xvmsoedgbwokcnlsywom.supabase.co/functions/v1/evaluate-teaching-video", {
         method: "POST",
@@ -438,7 +444,7 @@ export function TutorApplicationPage() {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
         },
-        body: JSON.stringify({ application_id: applicationId }),
+        body: JSON.stringify({ application_id: applicationId, video_paths: videoPaths }),
       });
 
       const result = await res.json();
