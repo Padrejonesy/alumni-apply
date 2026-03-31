@@ -983,25 +983,27 @@ export function TutorApplicationPage() {
             </div>
           </div>
 
-          {/* Graduation Year / GPAs */}
-          <div className="grid gap-4 sm:grid-cols-3 mb-5">
-            <div>
-              <label htmlFor="graduationYear" className={labelClasses}>
-                Expected College Graduation Year <span className="text-[#86868B]">*</span>
-              </label>
-              <select
-                id="graduationYear"
-                className={inputClasses}
-                value={formData.graduationYear}
-                onChange={(e) => setFormData((prev) => ({ ...prev, graduationYear: e.target.value }))}
-                required
-              >
-                <option value="">Select year</option>
-                {[2025, 2026, 2027, 2028, 2029, 2030, 2031, 2032].map(y => (
-                  <option key={y} value={y}>{y}</option>
-                ))}
-              </select>
-            </div>
+          {/* Graduation Year */}
+          <div className="mb-5">
+            <label htmlFor="graduationYear" className={labelClasses}>
+              Expected College Graduation Year <span className="text-[#86868B]">*</span>
+            </label>
+            <select
+              id="graduationYear"
+              className={inputClasses}
+              value={formData.graduationYear}
+              onChange={(e) => setFormData((prev) => ({ ...prev, graduationYear: e.target.value }))}
+              required
+            >
+              <option value="">Select year</option>
+              {[2025, 2026, 2027, 2028, 2029, 2030, 2031, 2032].map(y => (
+                <option key={y} value={y}>{y}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* GPAs */}
+          <div className="grid gap-4 sm:grid-cols-2 mb-5">
             <div>
               <label htmlFor="highSchoolGpa" className={labelClasses}>High School GPA <span className="text-[#86868B]">*</span></label>
               <input
@@ -1018,19 +1020,19 @@ export function TutorApplicationPage() {
               />
             </div>
             <div>
-              <label htmlFor="collegeGpa" className={labelClasses}>College GPA</label>
+              <label htmlFor="collegeGpa" className={labelClasses}>College GPA <span className="text-[#86868B]">*</span></label>
               <input
                 id="collegeGpa"
                 type="number"
                 min="0"
                 max="4.0"
                 step="0.01"
-                placeholder="N/A if incoming freshman"
+                placeholder="Enter 0 if incoming freshman"
                 className={inputClasses}
                 value={formData.collegeGpa}
                 onChange={(e) => setFormData((prev) => ({ ...prev, collegeGpa: e.target.value }))}
+                required
               />
-              <p className="text-[11px] text-[#AEAEB2] mt-1">Leave blank if you haven't started college yet</p>
             </div>
           </div>
 
