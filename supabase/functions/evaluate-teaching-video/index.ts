@@ -3,6 +3,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const GROQ_API_KEY = Deno.env.get("GROQ_API_KEY");
 const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY");
+const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
@@ -442,12 +443,18 @@ Deno.serve(async (req: Request) => {
           <p style="font-size: 12px; color: #AEAEB2; text-align: center;">Alumni Tutoring™ — alumnitutoring.com</p>
         </div>
       `;
-      // Use Supabase's built-in email via edge function
-      await fetch(`${SUPABASE_URL.split('.co')[0]}.co/functions/v1/send-session-email`, {
-        method: 'POST',
-        headers: { 'Authorization': `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ to: app.email, subject: `Your Alumni Tutoring Application — TQS: ${Math.round(tqs)}/100`, html: emailHtml }),
-      });
+      if (RESEND_API_KEY) {
+        await fetch('https://api.resend.com/emails', {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${RESEND_API_KEY}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            from: 'Alumni Tutoring <noreply@alumnitutoring.com>',
+            to: [app.email],
+            subject: `Your Alumni Tutoring Application — TQS: ${Math.round(tqs)}/100`,
+            html: emailHtml,
+          }),
+        });
+      }
     } catch (emailErr) { console.error("Email send failed:", emailErr); }
 
     return new Response(JSON.stringify({
