@@ -207,6 +207,7 @@ export function TutorApplicationPage() {
   };
 
   const [headshotValidating, setHeadshotValidating] = useState(false);
+  const [evalResult, setEvalResult] = useState<any>(null);
 
   const handleHeadshotChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -295,6 +296,15 @@ export function TutorApplicationPage() {
 
     if (formData.linkedinUrl && !formData.linkedinUrl.match(/^https?:\/\/(www\.)?linkedin\.com\//)) {
       toast({ title: "Invalid LinkedIn URL", description: "Please enter a valid LinkedIn profile URL.", variant: "destructive" });
+      return;
+    }
+
+    // Content safety pre-screen on text fields
+    const textToCheck = `${formData.bio} ${formData.priorExperience}`.toLowerCase();
+    const blockedWords = ['nigga', 'nigger', 'faggot', 'retard', 'kike', 'spic', 'chink', 'wetback', 'beaner', 'epstein', 'diddy', 'porn', 'fuck you', 'kill yourself'];
+    const foundBlocked = blockedWords.find(w => textToCheck.includes(w));
+    if (foundBlocked) {
+      toast({ title: "Inappropriate content detected", description: "Please remove offensive language from your application.", variant: "destructive" });
       return;
     }
 
@@ -473,10 +483,29 @@ export function TutorApplicationPage() {
       recorder.ondataavailable = (e) => { if (e.data.size > 0) chunksRef.current.push(e.data); };
       recorder.onstop = () => {
         const blob = new Blob(chunksRef.current, { type: mimeType });
-        setRecordedBlobs(prev => [...prev, blob]);
+        setRecordedBlobs(prev => {
+          const updated = [...prev];
+          if (currentTopicIndex < updated.length) {
+            // Re-recording — insert at the right position
+            updated.splice(currentTopicIndex, 0, blob);
+          } else {
+            updated.push(blob);
+          }
+          return updated;
+        });
         // Move to next topic or review
         const nextIndex = currentTopicIndex + 1;
-        if (nextIndex < selectedTopics.length) {
+        const allDone = nextIndex >= selectedTopics.length;
+        // If we were re-recording a single topic, go back to review
+        if (!allDone && currentTopicIndex < recordedBlobs.length) {
+          stream.getTracks().forEach(t => t.stop());
+          streamRef.current = null;
+          setStep('review');
+        } else if (allDone) {
+          stream.getTracks().forEach(t => t.stop());
+          streamRef.current = null;
+          setStep('review');
+        } else {
           setCurrentTopicIndex(nextIndex);
           setPrepCountdown(30);
           setIsPreparing(true);
@@ -490,11 +519,6 @@ export function TutorApplicationPage() {
               return t - 1;
             });
           }, 1000);
-        } else {
-          // All topics recorded
-          stream.getTracks().forEach(t => t.stop());
-          streamRef.current = null;
-          setStep('review');
         }
       };
       mediaRecorderRef.current = recorder;
@@ -564,6 +588,7 @@ export function TutorApplicationPage() {
       const result = await res.json();
 
       if (result.success) {
+        setEvalResult(result);
         setStep('done');
         setSubmitted(true);
         localStorage.removeItem('alumni_apply_app_id');
@@ -630,20 +655,88 @@ export function TutorApplicationPage() {
     );
   }
 
-  // Step: Done
+  // Step: Done — show results
   if (step === 'done') {
+    const tqs = evalResult?.tqs;
+    const bd = evalResult?.tqs_breakdown;
+    const rejected = evalResult?.decision === 'rejected';
     return (
       <div className="bg-white">
         <ProgressBar />
-        <div className="min-h-[50vh] flex items-center justify-center p-6">
-          <div className="max-w-md w-full text-center">
+        <div className="max-w-2xl mx-auto px-6 pt-8 pb-16">
+          <div className="text-center mb-8">
             <div className="h-16 w-16 mx-auto mb-4 rounded-full bg-[#F5F5F7] flex items-center justify-center">
-              <CheckCircle2 className="h-8 w-8 text-[#1D1D1F]" />
+              <CheckCircle2 className="h-8 w-8 text-[#34C759]" />
             </div>
-            <h2 className="text-[28px] font-serif font-bold text-[#1D1D1F] mb-2">Application Complete</h2>
-            <p className="text-[15px] text-[#86868B] leading-relaxed mb-8">
-              Thank you for completing your application and teaching demo. We'll review everything and get back to you within 48 hours.
+            <h2 className="text-[28px] font-serif font-bold text-[#1D1D1F] mb-2">Application Submitted!</h2>
+            <p className="text-[15px] text-[#86868B] leading-relaxed">
+              {rejected
+                ? "Thank you for your interest. Unfortunately, your application didn't meet our current requirements."
+                : "Your application is now under review. We'll get back to you within 48 hours."}
             </p>
+          </div>
+
+          {/* TQS Score */}
+          {tqs != null && (
+            <div className="mb-6">
+              <div className="rounded-2xl bg-[#1D1D1F] p-6 text-center">
+                <p className="text-[11px] font-medium text-white/50 uppercase tracking-widest mb-1">Your Tutor Quality Score</p>
+                <p className="text-5xl font-bold text-white">{Math.round(tqs)}<span className="text-xl text-white/30">/100</span></p>
+              </div>
+            </div>
+          )}
+
+          {/* Score Breakdown */}
+          {bd && (
+            <div className="space-y-3 mb-8">
+              <h3 className="text-[14px] font-semibold text-[#1D1D1F]">Score Breakdown</h3>
+              {[
+                { label: 'Academic Credentials', score: bd.academic?.score, max: bd.academic?.max, desc: 'Test scores, AP exams, college, GPA' },
+                { label: 'Teaching Demo', score: bd.teaching_demo?.score, max: bd.teaching_demo?.max, desc: 'Clarity, patience, knowledge, engagement, communication, accuracy' },
+                { label: 'Profile Completeness', score: bd.profile?.score, max: bd.profile?.max, desc: 'Headshot, resume, bio, LinkedIn, references' },
+                { label: 'Availability', score: bd.availability?.score, max: bd.availability?.max, desc: 'Hours per week, peak times, day coverage' },
+                { label: 'Subject Demand Fit', score: bd.demand_fit?.score, max: bd.demand_fit?.max, desc: 'High-demand subjects, market match' },
+              ].map(item => {
+                const pct = item.max ? Math.round(((item.score || 0) / item.max) * 100) : 0;
+                return (
+                  <div key={item.label} className="bg-[#F5F5F7] rounded-xl p-4">
+                    <div className="flex justify-between items-center mb-1">
+                      <span className="text-[13px] font-medium text-[#1D1D1F]">{item.label}</span>
+                      <span className="text-[13px] font-bold text-[#1D1D1F]">{Math.round(item.score || 0)}<span className="text-[#AEAEB2]">/{item.max}</span></span>
+                    </div>
+                    <div className="w-full h-2 bg-[#E5E5EA] rounded-full overflow-hidden mb-1">
+                      <div className={`h-full rounded-full transition-all ${pct >= 70 ? 'bg-[#34C759]' : pct >= 40 ? 'bg-[#FF9F0A]' : 'bg-[#FF3B30]'}`} style={{ width: `${pct}%` }} />
+                    </div>
+                    <p className="text-[11px] text-[#AEAEB2]">{item.desc}</p>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {/* What's Next */}
+          {!rejected && (
+            <div className="bg-[#F5F5F7] rounded-2xl p-6 mb-8">
+              <h3 className="text-[14px] font-semibold text-[#1D1D1F] mb-3">What Happens Next</h3>
+              <div className="space-y-3">
+                {[
+                  { step: '1', label: 'Application Review', desc: 'Our team reviews your profile, scores, and teaching demos within 48 hours.' },
+                  { step: '2', label: 'Decision', desc: "You'll receive an email with our decision — approved, or feedback if we need more info." },
+                  { step: '3', label: 'Onboarding', desc: "If approved, your profile goes live on our website and you'll be matched with students at your high school." },
+                ].map(item => (
+                  <div key={item.step} className="flex items-start gap-3">
+                    <div className="w-6 h-6 rounded-full bg-[#1D1D1F] text-white flex items-center justify-center text-[11px] font-bold flex-shrink-0 mt-0.5">{item.step}</div>
+                    <div>
+                      <p className="text-[13px] font-medium text-[#1D1D1F]">{item.label}</p>
+                      <p className="text-[12px] text-[#86868B]">{item.desc}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <div className="text-center">
             <a href="https://alumnitutoring.com" className="inline-block px-8 py-3 bg-[#1D1D1F] text-white text-[15px] font-medium rounded-[10px] hover:bg-[#2D2D2F] transition-colors">
               Return to Homepage
             </a>
@@ -652,6 +745,18 @@ export function TutorApplicationPage() {
       </div>
     );
   }
+
+  const reRecordTopic = useCallback((index: number) => {
+    // Remove the blob at this index and jump to recording that topic
+    setRecordedBlobs(prev => {
+      const updated = [...prev];
+      updated.splice(index, 1);
+      return updated;
+    });
+    setCurrentTopicIndex(index);
+    setRecordingTime(0);
+    setStep('prep');
+  }, []);
 
   // Step: Review recordings before submit
   if (step === 'review') {
@@ -671,7 +776,16 @@ export function TutorApplicationPage() {
                   <p className="text-[15px] font-medium text-[#1D1D1F]">{topic}</p>
                   <p className="text-[13px] text-[#86868B]">Recorded</p>
                 </div>
-                <CheckCircle2 className="h-5 w-5 text-[#34C759] ml-auto" />
+                <div className="ml-auto flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => reRecordTopic(i)}
+                    className="text-[12px] text-[#86868B] hover:text-[#1D1D1F] underline underline-offset-2 transition-colors"
+                  >
+                    Re-record
+                  </button>
+                  <CheckCircle2 className="h-5 w-5 text-[#34C759]" />
+                </div>
               </div>
             ))}
           </div>

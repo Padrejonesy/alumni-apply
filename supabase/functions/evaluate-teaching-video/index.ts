@@ -405,6 +405,51 @@ Deno.serve(async (req: Request) => {
     const newStatus = decision === "rejected" ? "rejected" : "pending";
     await supabase.from("tutor_applications").update({ status: newStatus, tqs_score: tqs }).eq("id", application_id);
 
+    // Send confirmation email
+    try {
+      const SUPABASE_URL_BASE = SUPABASE_URL.replace('/rest/v1', '').replace('https://', '');
+      const emailHtml = `
+        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 20px;">
+          <img src="https://alumnitutoring.com/alumni-tutoring-logo-color.webp" alt="Alumni Tutoring" style="height: 48px; margin-bottom: 24px;" />
+          <h1 style="font-size: 24px; color: #1D1D1F; margin-bottom: 8px;">Application Received!</h1>
+          <p style="font-size: 15px; color: #86868B; margin-bottom: 24px;">
+            Hi ${app.first_name}, thanks for applying to be an Alumni Tutoring tutor. Here's a summary of your application.
+          </p>
+          <div style="background: #1D1D1F; border-radius: 16px; padding: 24px; text-align: center; margin-bottom: 24px;">
+            <p style="font-size: 11px; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 2px; margin: 0 0 4px;">Your Tutor Quality Score</p>
+            <p style="font-size: 48px; font-weight: bold; color: white; margin: 0;">${Math.round(tqs)}<span style="font-size: 18px; color: rgba(255,255,255,0.3);">/100</span></p>
+          </div>
+          <table style="width: 100%; border-collapse: collapse; margin-bottom: 24px;">
+            ${[
+              { label: 'Academic', score: breakdown.academic?.score, max: breakdown.academic?.max },
+              { label: 'Teaching Demo', score: breakdown.teaching_demo?.score, max: breakdown.teaching_demo?.max },
+              { label: 'Profile', score: breakdown.profile?.score, max: breakdown.profile?.max },
+              { label: 'Availability', score: breakdown.availability?.score, max: breakdown.availability?.max },
+              { label: 'Subject Fit', score: breakdown.demand_fit?.score, max: breakdown.demand_fit?.max },
+            ].map(r => `<tr><td style="padding: 8px 0; font-size: 14px; color: #1D1D1F;">${r.label}</td><td style="padding: 8px 0; font-size: 14px; font-weight: bold; text-align: right; color: #1D1D1F;">${Math.round(r.score || 0)}/${r.max}</td></tr>`).join('')}
+          </table>
+          ${decision !== 'rejected' ? `
+            <div style="background: #F5F5F7; border-radius: 12px; padding: 20px; margin-bottom: 24px;">
+              <p style="font-size: 14px; font-weight: 600; color: #1D1D1F; margin: 0 0 8px;">What happens next?</p>
+              <p style="font-size: 13px; color: #86868B; margin: 0;">Our team will review your application and teaching demos within 48 hours. If approved, your profile will go live on our website and you'll be matched with students at your former high school.</p>
+            </div>
+          ` : `
+            <div style="background: #FFF5F5; border-radius: 12px; padding: 20px; margin-bottom: 24px;">
+              <p style="font-size: 14px; font-weight: 600; color: #1D1D1F; margin: 0 0 8px;">Application Status</p>
+              <p style="font-size: 13px; color: #86868B; margin: 0;">Unfortunately your application didn't meet our current requirements. If you believe this was an error, feel free to reach out to us at info@alumnitutoring.com.</p>
+            </div>
+          `}
+          <p style="font-size: 12px; color: #AEAEB2; text-align: center;">Alumni Tutoring™ — alumnitutoring.com</p>
+        </div>
+      `;
+      // Use Supabase's built-in email via edge function
+      await fetch(`${SUPABASE_URL.split('.co')[0]}.co/functions/v1/send-session-email`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ to: app.email, subject: `Your Alumni Tutoring Application — TQS: ${Math.round(tqs)}/100`, html: emailHtml }),
+      });
+    } catch (emailErr) { console.error("Email send failed:", emailErr); }
+
     return new Response(JSON.stringify({
       success: true, application_id, decision,
       average_score: Math.round(avgScore * 10) / 10,
