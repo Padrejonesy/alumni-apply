@@ -384,16 +384,12 @@ Deno.serve(async (req: Request) => {
     // Compute TQS
     const { tqs, breakdown } = computeTQS(app, evaluation);
 
-    // Decision based on TQS thresholds
+    // Decision — auto-reject safety/accuracy failures, everything else goes to pending for manual review
     let decision: string;
     if (evaluation.safety_passed === false) decision = "rejected";
     else if (accuracyScore <= 3) decision = "rejected";
-    else if (tqs >= 65) decision = "approved";
-    else if (tqs >= 50) decision = "flagged";
-    else decision = "rejected";
-
-    if (evaluation.recommendation === "rejected") decision = "rejected";
-    if (evaluation.recommendation === "flagged" && decision === "approved") decision = "flagged";
+    else if (evaluation.recommendation === "rejected") decision = "rejected";
+    else decision = "pending";
 
     // Save evaluation
     await supabase.from("ai_interviews").insert({
@@ -405,32 +401,9 @@ Deno.serve(async (req: Request) => {
       conducted_at: new Date().toISOString(), evaluated_at: new Date().toISOString(),
     });
 
-    // Update application
-    const newStatus = decision === "approved" ? "approved" : decision === "flagged" ? "pending" : "rejected";
+    // Update application — rejected stays rejected, everything else goes to pending for Nate's review
+    const newStatus = decision === "rejected" ? "rejected" : "pending";
     await supabase.from("tutor_applications").update({ status: newStatus, tqs_score: tqs }).eq("id", application_id);
-
-    // Auto-onboard if approved
-    if (decision === "approved") {
-      try {
-        const subjects = deriveSubjectsFromAP(app.ap_scores || []);
-        let slug = generateSlug(app.first_name, app.college);
-        const { data: existing } = await supabase.from("public_tutors").select("id").eq("application_id", application_id);
-        if (existing && existing.length > 0) {
-          await supabase.from("public_tutors").update({ is_active: true, tqs_score: tqs }).eq("application_id", application_id);
-        } else {
-          const { data: slugCheck } = await supabase.from("public_tutors").select("id").like("id", `${slug}%`);
-          if (slugCheck && slugCheck.length > 0) slug = `${slug}-${slugCheck.length + 1}`;
-          const tutorBio = app.bio && app.bio.trim().length > 20 ? app.bio : `${app.college || 'University'} student from ${app.high_school || 'a top high school'}. ${app.sat_score ? `SAT: ${app.sat_score}. ` : ''}${app.act_score ? `ACT: ${app.act_score}. ` : ''}${app.ap_scores?.length > 0 ? `Perfect scores on ${app.ap_scores.length} AP exams.` : ''}`;
-          await supabase.from("public_tutors").insert({
-            id: slug, name: app.first_name, university: app.college || '', high_school: app.high_school || '',
-            gender: app.gender || 'Male', subjects, sat_score: app.sat_score || 0, act_score: app.act_score || 0,
-            specialties: subjects, availability: 'Flexible Schedule', bio: tutorBio,
-            image_url: app.headshot_url || '', ap_scores: app.ap_scores || [],
-            is_active: true, sort_order: Math.max(0, 100 - Math.round(tqs)), tqs_score: tqs, application_id: app.id,
-          });
-        }
-      } catch (e) { console.error("Error creating public tutor:", e); }
-    }
 
     return new Response(JSON.stringify({
       success: true, application_id, decision,
