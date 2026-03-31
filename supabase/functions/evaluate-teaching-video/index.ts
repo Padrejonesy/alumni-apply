@@ -18,56 +18,81 @@ const TOP_50 = ['Boston College', 'Boston University', 'Tufts University', 'Wake
 const HIGH_DEMAND_SUBJECTS = ['Mathematics', 'Science', 'SAT Prep', 'ACT Prep', 'Computer Science', 'English', 'Physics', 'Chemistry', 'Biology', 'Calculus'];
 
 function computeTQS(app: any, evalScores: any): { tqs: number; breakdown: any } {
-  // === ACADEMIC CREDENTIALS (30 pts) ===
+  // === ACADEMIC CREDENTIALS (45 pts) ===
+
+  // SAT (0-15 pts)
   let satPts = 0;
   if (app.sat_score) {
-    if (app.sat_score >= 1580) satPts = 10;
-    else if (app.sat_score >= 1550) satPts = 9;
-    else if (app.sat_score >= 1500) satPts = 8;
-    else if (app.sat_score >= 1450) satPts = 7;
-    else if (app.sat_score >= 1400) satPts = 6;
-    else if (app.sat_score >= 1350) satPts = 5;
-    else if (app.sat_score >= 1300) satPts = 4;
-    else satPts = 3;
+    if (app.sat_score >= 1550) satPts = 15;
+    else if (app.sat_score >= 1500) satPts = 14;
+    else if (app.sat_score >= 1450) satPts = 13;
+    else if (app.sat_score >= 1400) satPts = 12;
+    else if (app.sat_score >= 1350) satPts = 10;
+    else if (app.sat_score >= 1300) satPts = 8;
+    else if (app.sat_score >= 1200) satPts = 6;
+    else satPts = 4;
   }
 
+  // ACT (0-15 pts)
   let actPts = 0;
   if (app.act_score) {
-    if (app.act_score >= 36) actPts = 10;
-    else if (app.act_score >= 35) actPts = 9;
-    else if (app.act_score >= 34) actPts = 8;
-    else if (app.act_score >= 33) actPts = 7;
-    else if (app.act_score >= 32) actPts = 6;
-    else if (app.act_score >= 30) actPts = 5;
-    else actPts = 3;
+    if (app.act_score >= 35) actPts = 15;
+    else if (app.act_score >= 34) actPts = 14;
+    else if (app.act_score >= 33) actPts = 13;
+    else if (app.act_score >= 32) actPts = 12;
+    else if (app.act_score >= 30) actPts = 10;
+    else if (app.act_score >= 28) actPts = 8;
+    else if (app.act_score >= 26) actPts = 6;
+    else actPts = 4;
   }
   // Use best of SAT or ACT
   const testPts = Math.max(satPts, actPts);
 
+  // AP Exams (0-8 pts)
   let apPts = 0;
   const apCount = app.ap_scores?.length || app.ap_fives_count || 0;
-  apPts = Math.min(5, Math.round(apCount * 0.5));
+  if (apCount >= 8) apPts = 8;
+  else if (apCount >= 6) apPts = 7;
+  else if (apCount >= 4) apPts = 6;
+  else if (apCount >= 2) apPts = 4;
+  else if (apCount >= 1) apPts = 2;
 
+  // College tier (0-7 pts)
   let collegePts = 0;
   const college = (app.college || '').trim();
-  if (IVY_PLUS.some(s => college.toLowerCase().includes(s.toLowerCase()))) collegePts = 5;
-  else if (TOP_20.some(s => college.toLowerCase().includes(s.toLowerCase()))) collegePts = 4;
-  else if (TOP_50.some(s => college.toLowerCase().includes(s.toLowerCase()))) collegePts = 3;
-  else collegePts = 1;
+  if (IVY_PLUS.some(s => college.toLowerCase().includes(s.toLowerCase()))) collegePts = 7;
+  else if (TOP_20.some(s => college.toLowerCase().includes(s.toLowerCase()))) collegePts = 6;
+  else if (TOP_50.some(s => college.toLowerCase().includes(s.toLowerCase()))) collegePts = 5;
+  else if (college) collegePts = 3;
 
-  let gpaPts = 0;
-  if (app.college_gpa) {
-    if (app.college_gpa >= 3.9) gpaPts = 5;
-    else if (app.college_gpa >= 3.7) gpaPts = 4;
-    else if (app.college_gpa >= 3.5) gpaPts = 3;
-    else if (app.college_gpa >= 3.0) gpaPts = 2;
-    else gpaPts = 1;
+  // GPA — best of HS or college (0-8 pts)
+  let hsGpaPts = 0;
+  if (app.high_school_gpa) {
+    if (app.high_school_gpa >= 3.9) hsGpaPts = 8;
+    else if (app.high_school_gpa >= 3.7) hsGpaPts = 7;
+    else if (app.high_school_gpa >= 3.5) hsGpaPts = 6;
+    else if (app.high_school_gpa >= 3.3) hsGpaPts = 5;
+    else if (app.high_school_gpa >= 3.0) hsGpaPts = 4;
+    else hsGpaPts = 2;
   }
+  let collegeGpaPts = 0;
+  if (app.college_gpa) {
+    if (app.college_gpa >= 3.9) collegeGpaPts = 8;
+    else if (app.college_gpa >= 3.7) collegeGpaPts = 7;
+    else if (app.college_gpa >= 3.5) collegeGpaPts = 6;
+    else if (app.college_gpa >= 3.3) collegeGpaPts = 5;
+    else if (app.college_gpa >= 3.0) collegeGpaPts = 4;
+    else collegeGpaPts = 2;
+  }
+  const gpaPts = Math.max(hsGpaPts, collegeGpaPts);
 
-  const academicRaw = testPts + apPts + collegePts + gpaPts; // max 25
-  const academicScore = (academicRaw / 25) * 30;
+  // Freshman bonus — don't penalize for no college GPA
+  const freshmanBonus = (!app.college_gpa && app.high_school_gpa) ? 2 : 0;
 
-  // === TEACHING DEMO (40 pts) ===
+  const academicRaw = testPts + apPts + collegePts + gpaPts + freshmanBonus; // max ~38
+  const academicScore = Math.min(45, (academicRaw / 38) * 45);
+
+  // === TEACHING DEMO (25 pts) ===
   const clarity = evalScores?.clarity?.score || 0;
   const patience = evalScores?.patience?.score || 0;
   const knowledge = evalScores?.knowledge?.score || 0;
@@ -75,7 +100,7 @@ function computeTQS(app: any, evalScores: any): { tqs: number; breakdown: any } 
   const communication = evalScores?.communication?.score || 0;
   const accuracy = evalScores?.accuracy?.score || 0;
   const demoRaw = clarity + patience + knowledge + engagement + communication + accuracy; // max 60
-  const demoScore = (demoRaw / 60) * 40;
+  const demoScore = (demoRaw / 60) * 25;
 
   // === PROFILE COMPLETENESS (10 pts) ===
   let profilePts = 0;
@@ -149,8 +174,8 @@ function computeTQS(app: any, evalScores: any): { tqs: number; breakdown: any } 
   return {
     tqs: Math.min(100, Math.max(0, tqs)),
     breakdown: {
-      academic: { score: Math.round(academicScore * 10) / 10, max: 30, test: testPts, ap: apPts, college: collegePts, gpa: gpaPts },
-      teaching_demo: { score: Math.round(demoScore * 10) / 10, max: 40, clarity, patience, knowledge, engagement, communication, accuracy },
+      academic: { score: Math.round(academicScore * 10) / 10, max: 45, test: testPts, ap: apPts, college: collegePts, gpa: gpaPts, freshmanBonus },
+      teaching_demo: { score: Math.round(demoScore * 10) / 10, max: 25, clarity, patience, knowledge, engagement, communication, accuracy },
       profile: { score: profileScore, max: 10 },
       availability: { score: availScore, max: 10 },
       demand_fit: { score: demandScore, max: 10, subjects: demandPts, market: marketPts },
@@ -258,15 +283,18 @@ Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: corsHeaders });
 
   try {
-    const { application_id, video_paths: directPaths } = await req.json();
+    const { application_id, video_paths: directPaths, force } = await req.json();
     if (!application_id) return new Response(JSON.stringify({ error: "application_id required" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     if (!GROQ_API_KEY || !ANTHROPIC_API_KEY) return new Response(JSON.stringify({ error: "Missing API keys" }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
-    // Idempotency check
+    // Idempotency check (skip with force: true for re-scoring)
     const { data: existingEval } = await supabase.from("ai_interviews").select("id").eq("application_id", application_id).limit(1);
-    if (existingEval && existingEval.length > 0) return new Response(JSON.stringify({ error: "Already evaluated", interview_id: existingEval[0].id }), { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    if (existingEval && existingEval.length > 0 && !force) return new Response(JSON.stringify({ error: "Already evaluated", interview_id: existingEval[0].id }), { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    if (existingEval && existingEval.length > 0 && force) {
+      await supabase.from("ai_interviews").delete().eq("application_id", application_id);
+    }
 
     const { data: app, error: fetchErr } = await supabase
       .from("tutor_applications")
