@@ -93,20 +93,34 @@ function computeTQS(app: any, evalScores: any): { tqs: number; breakdown: any } 
     const slotStr = typeof schedSlots === 'string' ? schedSlots : '';
     const slotCount = slotStr.split(',').filter((s: string) => s.trim()).length;
     const weeklyHours = slotCount * 0.5;
-    if (weeklyHours >= 20) availPts += 5;
-    else if (weeklyHours >= 10) availPts += 3;
-    else if (weeklyHours >= 5) availPts += 2;
-    else availPts += 1;
 
-    // Peak hours: check for weekday afternoon slots (15:00-20:00)
-    const peakDays = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'];
-    let peakCount = 0;
-    for (const day of peakDays) {
-      if (slotStr.includes(`${day}-15:`) || slotStr.includes(`${day}-16:`) || slotStr.includes(`${day}-17:`) || slotStr.includes(`${day}-18:`) || slotStr.includes(`${day}-19:`)) {
-        peakCount++;
-      }
+    // Weekly hours (3 pts) — generous thresholds for college students
+    if (weeklyHours >= 10) availPts += 3;
+    else if (weeklyHours >= 5) availPts += 2.5;
+    else if (weeklyHours >= 3) availPts += 2;
+    else if (weeklyHours >= 1) availPts += 1;
+
+    // Peak hours (4 pts) — weekday 3-9 PM + weekend 9 AM-6 PM
+    const allDays = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+    const weekdays = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'];
+    const weekends = ['saturday', 'sunday'];
+    let peakDayCount = 0;
+    for (const day of weekdays) {
+      if (['15', '16', '17', '18', '19', '20'].some(h => slotStr.includes(`${day}-${h}:`))) peakDayCount++;
     }
-    availPts += Math.min(5, peakCount);
+    for (const day of weekends) {
+      if (['09', '10', '11', '12', '13', '14', '15', '16', '17'].some(h => slotStr.includes(`${day}-${h}:`))) peakDayCount++;
+    }
+    availPts += Math.min(4, Math.round(peakDayCount * 0.6));
+
+    // Day coverage (3 pts) — bonus for spreading across multiple days
+    let daysAvailable = 0;
+    for (const day of allDays) {
+      if (slotStr.includes(day)) daysAvailable++;
+    }
+    if (daysAvailable >= 5) availPts += 3;
+    else if (daysAvailable >= 3) availPts += 2;
+    else if (daysAvailable >= 2) availPts += 1;
   }
   const availScore = Math.min(10, availPts);
 
