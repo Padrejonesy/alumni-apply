@@ -97,6 +97,7 @@ export function TutorApplicationPage() {
     actDidNotTake: false,
     apFivesCount: "",
     graduationYear: "",
+    highSchoolGpa: "",
     collegeGpa: "",
     availabilitySchedule: [] as string[],
     preferredSubjects: [] as string[],
@@ -356,6 +357,7 @@ export function TutorApplicationPage() {
         ap_scores: formData.apScores,
         graduation_year: formData.graduationYear ? parseInt(formData.graduationYear) : null,
         college_gpa: formData.collegeGpa ? parseFloat(formData.collegeGpa) : null,
+        high_school_gpa: formData.highSchoolGpa ? parseFloat(formData.highSchoolGpa) : null,
         availability_schedule: formData.availabilitySchedule.length > 0 ? formData.availabilitySchedule.join(', ') : null,
         preferred_subjects: formData.preferredSubjects,
         referral_source: formData.referralSource || null,
@@ -981,11 +983,11 @@ export function TutorApplicationPage() {
             </div>
           </div>
 
-          {/* Graduation Year / GPA */}
-          <div className="grid gap-4 sm:grid-cols-2 mb-5">
+          {/* Graduation Year / GPAs */}
+          <div className="grid gap-4 sm:grid-cols-3 mb-5">
             <div>
               <label htmlFor="graduationYear" className={labelClasses}>
-                Expected Graduation Year <span className="text-[#86868B]">*</span>
+                Expected College Graduation Year <span className="text-[#86868B]">*</span>
               </label>
               <select
                 id="graduationYear"
@@ -995,10 +997,25 @@ export function TutorApplicationPage() {
                 required
               >
                 <option value="">Select year</option>
-                {[2024, 2025, 2026, 2027, 2028, 2029, 2030].map(y => (
+                {[2025, 2026, 2027, 2028, 2029, 2030, 2031, 2032].map(y => (
                   <option key={y} value={y}>{y}</option>
                 ))}
               </select>
+            </div>
+            <div>
+              <label htmlFor="highSchoolGpa" className={labelClasses}>High School GPA <span className="text-[#86868B]">*</span></label>
+              <input
+                id="highSchoolGpa"
+                type="number"
+                min="0"
+                max="5.0"
+                step="0.01"
+                placeholder="e.g., 3.95"
+                className={inputClasses}
+                value={formData.highSchoolGpa}
+                onChange={(e) => setFormData((prev) => ({ ...prev, highSchoolGpa: e.target.value }))}
+                required
+              />
             </div>
             <div>
               <label htmlFor="collegeGpa" className={labelClasses}>College GPA</label>
@@ -1008,11 +1025,12 @@ export function TutorApplicationPage() {
                 min="0"
                 max="4.0"
                 step="0.01"
-                placeholder="e.g., 3.85"
+                placeholder="N/A if incoming freshman"
                 className={inputClasses}
                 value={formData.collegeGpa}
                 onChange={(e) => setFormData((prev) => ({ ...prev, collegeGpa: e.target.value }))}
               />
+              <p className="text-[11px] text-[#AEAEB2] mt-1">Leave blank if you haven't started college yet</p>
             </div>
           </div>
 
