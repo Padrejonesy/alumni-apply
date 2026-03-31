@@ -109,7 +109,7 @@ function computeTQS(app: any, evalScores: any): { tqs: number; breakdown: any } 
       if (['15', '16', '17', '18', '19', '20'].some(h => slotStr.includes(`${day}-${h}:`))) peakDayCount++;
     }
     for (const day of weekends) {
-      if (['09', '10', '11', '12', '13', '14', '15', '16', '17'].some(h => slotStr.includes(`${day}-${h}:`))) peakDayCount++;
+      if (['09', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20'].some(h => slotStr.includes(`${day}-${h}:`))) peakDayCount++;
     }
     availPts += Math.min(4, Math.round(peakDayCount * 0.6));
 
