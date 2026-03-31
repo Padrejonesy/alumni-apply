@@ -171,25 +171,90 @@ export function TutorApplicationPage() {
     }));
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      if (file.size > 10 * 1024 * 1024) {
-        toast({ title: "File too large", description: "Resume must be under 10MB.", variant: "destructive" });
+    if (!file) return;
+
+    if (file.type !== 'application/pdf') {
+      toast({ title: "PDF only", description: "Please upload your resume as a PDF file.", variant: "destructive" });
+      e.target.value = '';
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      toast({ title: "File too large", description: "Resume must be under 5MB.", variant: "destructive" });
+      e.target.value = '';
+      return;
+    }
+
+    // Check page count using PDF header
+    try {
+      const buffer = await file.arrayBuffer();
+      const bytes = new Uint8Array(buffer);
+      const text = new TextDecoder('latin1').decode(bytes);
+      const pageMatches = text.match(/\/Type\s*\/Page[^s]/g);
+      const pageCount = pageMatches ? pageMatches.length : 0;
+      if (pageCount > 1) {
+        toast({ title: "One page only", description: `Your resume is ${pageCount} pages. Please condense it to a single page.`, variant: "destructive" });
+        e.target.value = '';
         return;
       }
-      setFormData((prev) => ({ ...prev, resumeFile: file }));
+    } catch {
+      // If we can't parse, allow it through
     }
+
+    setFormData((prev) => ({ ...prev, resumeFile: file }));
   };
 
-  const handleHeadshotChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const [headshotValidating, setHeadshotValidating] = useState(false);
+
+  const handleHeadshotChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      if (file.size > 5 * 1024 * 1024) {
-        toast({ title: "File too large", description: "Headshot must be under 5MB.", variant: "destructive" });
+    if (!file) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast({ title: "File too large", description: "Headshot must be under 5MB.", variant: "destructive" });
+      e.target.value = '';
+      return;
+    }
+
+    // Validate it's a real person's face using AI
+    setHeadshotValidating(true);
+    try {
+      const base64 = await new Promise<string>((resolve) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve((reader.result as string).split(',')[1]);
+        reader.readAsDataURL(file);
+      });
+
+      const mediaType = file.type === 'image/png' ? 'image/png' : file.type === 'image/webp' ? 'image/webp' : 'image/jpeg';
+
+      const res = await fetch("https://xvmsoedgbwokcnlsywom.supabase.co/functions/v1/validate-headshot", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+        },
+        body: JSON.stringify({ image_base64: base64, media_type: mediaType }),
+      });
+
+      const result = await res.json();
+
+      if (!result.valid) {
+        toast({
+          title: "Invalid headshot",
+          description: result.reason || "Please upload a clear photo of your face — this will be used on our website.",
+          variant: "destructive",
+        });
+        e.target.value = '';
         return;
       }
+
       setFormData((prev) => ({ ...prev, headshotFile: file }));
+    } catch (err) {
+      // If validation service is down, allow it through
+      setFormData((prev) => ({ ...prev, headshotFile: file }));
+    } finally {
+      setHeadshotValidating(false);
     }
   };
 
@@ -1310,7 +1375,7 @@ export function TutorApplicationPage() {
             <input
               id="resume"
               type="file"
-              accept=".pdf,.doc,.docx"
+              accept=".pdf"
               onChange={handleFileChange}
               className="hidden"
               required={!formData.resumeFile}
@@ -1326,7 +1391,7 @@ export function TutorApplicationPage() {
               <p className="text-[15px] font-medium text-[#1D1D1F]">
                 {formData.resumeFile ? formData.resumeFile.name : "Upload Resume"}
               </p>
-              <p className="text-[13px] text-[#AEAEB2] mt-1">PDF, DOC, DOCX (max 10MB)</p>
+              <p className="text-[13px] text-[#AEAEB2] mt-1">PDF only, one page max</p>
             </div>
             {formData.resumeFile && (
               <button
@@ -1353,17 +1418,27 @@ export function TutorApplicationPage() {
               required={!formData.headshotFile}
             />
             <div
-              onClick={() => document.getElementById("headshot")?.click()}
+              onClick={() => !headshotValidating && document.getElementById("headshot")?.click()}
               role="button"
               tabIndex={0}
-              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); document.getElementById('headshot')?.click(); } }}
-              className="border border-dashed border-[#E5E5EA] rounded-[10px] p-6 text-center hover:border-[#D1D1D6] transition-colors cursor-pointer"
+              onKeyDown={(e) => { if (!headshotValidating && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); document.getElementById('headshot')?.click(); } }}
+              className={`border border-dashed border-[#E5E5EA] rounded-[10px] p-6 text-center transition-colors ${headshotValidating ? 'opacity-60' : 'hover:border-[#D1D1D6] cursor-pointer'}`}
             >
-              <Upload className="h-5 w-5 text-[#86868B] mx-auto mb-2" />
-              <p className="text-[15px] font-medium text-[#1D1D1F]">
-                {formData.headshotFile ? formData.headshotFile.name : "Upload Headshot"}
-              </p>
-              <p className="text-[13px] text-[#AEAEB2] mt-1">JPG, PNG, WEBP (max 5MB)</p>
+              {headshotValidating ? (
+                <>
+                  <Loader2 className="h-5 w-5 text-[#86868B] mx-auto mb-2 animate-spin" />
+                  <p className="text-[15px] font-medium text-[#1D1D1F]">Verifying photo...</p>
+                  <p className="text-[13px] text-[#AEAEB2] mt-1">Checking that this is a valid headshot</p>
+                </>
+              ) : (
+                <>
+                  <Upload className="h-5 w-5 text-[#86868B] mx-auto mb-2" />
+                  <p className="text-[15px] font-medium text-[#1D1D1F]">
+                    {formData.headshotFile ? formData.headshotFile.name : "Upload Headshot"}
+                  </p>
+                  <p className="text-[13px] text-[#AEAEB2] mt-1">Clear photo of your face — JPG, PNG, WEBP (max 5MB)</p>
+                </>
+              )}
             </div>
             {formData.headshotFile && (
               <button
