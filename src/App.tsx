@@ -21,7 +21,7 @@ function AppContent() {
           <nav className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-xl border-b border-[#E5E5EA]/50">
             <div className="max-w-2xl mx-auto px-6 h-14 flex items-center justify-between">
               <a href="https://alumnitutoring.com">
-                <img src="/alumni-tutoring-logo-color.webp" alt="Alumni Tutoring" className="h-8" />
+                <img src="/alumni-tutoring-logo-color.webp" alt="Alumni Tutoring" className="h-10" />
               </a>
               <a href="https://alumnitutoring.com" className="text-[13px] text-[#86868B] hover:text-[#1D1D1F] transition-colors">
                 Back to site
