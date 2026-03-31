@@ -547,9 +547,10 @@ export function TutorApplicationPage() {
         videoPaths.push(storagePath);
       }
 
-      // Store all video paths via RPC (bypasses RLS)
+      // Store all video paths and selected topics via RPC (bypasses RLS)
       const videoUrl = videoPaths.join(',');
       await supabase.rpc('set_application_video_url', { app_id: applicationId, video_url: videoUrl });
+      await supabase.from('tutor_applications').update({ selected_topics: selectedTopics }).eq('id', applicationId);
 
       const res = await fetch("https://xvmsoedgbwokcnlsywom.supabase.co/functions/v1/evaluate-teaching-video", {
         method: "POST",
