@@ -111,6 +111,40 @@ export function TutorApplicationPage() {
     headshotFile: null as File | null,
   });
 
+  // Resume existing application on mount
+  useEffect(() => {
+    const savedAppId = localStorage.getItem('alumni_apply_app_id');
+    if (!savedAppId) return;
+
+    (async () => {
+      const { data: app } = await supabase
+        .from('tutor_applications')
+        .select('id, ap_scores, tqs_score, status, teaching_video_url')
+        .eq('id', savedAppId)
+        .maybeSingle();
+
+      if (!app) {
+        localStorage.removeItem('alumni_apply_app_id');
+        return;
+      }
+
+      // Already fully evaluated
+      if (app.tqs_score != null) {
+        setSubmitted(true);
+        setStep('done');
+        setApplicationId(app.id);
+        return;
+      }
+
+      // Application exists but needs videos — resume at topic selection
+      setApplicationId(app.id);
+      if (app.ap_scores?.length) {
+        setFormData(prev => ({ ...prev, apScores: app.ap_scores }));
+      }
+      setStep('selectTopics');
+    })();
+  }, []);
+
   const maxTopics = Math.min(3, formData.apScores.length);
 
   const apClassOptions = [
@@ -275,15 +309,34 @@ export function TutorApplicationPage() {
       if (error) throw error;
 
       setApplicationId(appId);
+      localStorage.setItem('alumni_apply_app_id', appId);
       setStep('selectTopics');
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch (error: any) {
       console.error("Error submitting application:", error);
       const msg = error.message || "";
       if (msg.toLowerCase().includes("duplicate") || msg.toLowerCase().includes("unique")) {
+        // Try to find and resume the existing application
+        const { data: existing } = await supabase
+          .from('tutor_applications')
+          .select('id, ap_scores, tqs_score')
+          .eq('email', formData.email.toLowerCase().trim())
+          .maybeSingle();
+
+        if (existing && existing.tqs_score == null) {
+          setApplicationId(existing.id);
+          localStorage.setItem('alumni_apply_app_id', existing.id);
+          if (existing.ap_scores?.length) {
+            setFormData(prev => ({ ...prev, apScores: existing.ap_scores }));
+          }
+          setStep('selectTopics');
+          toast({ title: "Welcome back!", description: "We found your application. Let's record your teaching demos." });
+          return;
+        }
+
         toast({
           title: "Duplicate Application",
-          description: "You already have a pending application. Please contact us at info@alumnitutoring.com",
+          description: "You already have a completed application. Please contact us at info@alumnitutoring.com",
           variant: "destructive",
         });
       } else {
@@ -445,6 +498,7 @@ export function TutorApplicationPage() {
       if (result.success) {
         setStep('done');
         setSubmitted(true);
+        localStorage.removeItem('alumni_apply_app_id');
       } else if (result.error?.includes("Transcript too short")) {
         toast({ title: "Recording Issue", description: "We couldn't pick up enough audio from your recording. Please re-record your teaching demos — try speaking louder and closer to the microphone.", variant: "destructive" });
         retakeAll();
