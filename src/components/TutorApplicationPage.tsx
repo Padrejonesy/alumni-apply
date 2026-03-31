@@ -445,6 +445,9 @@ export function TutorApplicationPage() {
       if (result.success) {
         setStep('done');
         setSubmitted(true);
+      } else if (result.error?.includes("Transcript too short")) {
+        toast({ title: "Recording Issue", description: "We couldn't pick up enough audio from your recording. Please re-record your teaching demos — try speaking louder and closer to the microphone.", variant: "destructive" });
+        retakeAll();
       } else {
         throw new Error(result.error || "Evaluation failed");
       }
