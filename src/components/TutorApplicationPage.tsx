@@ -356,7 +356,7 @@ export function TutorApplicationPage() {
         ap_fives_count: formData.apFivesCount ? parseInt(formData.apFivesCount) : null,
         ap_scores: formData.apScores,
         graduation_year: formData.graduationYear ? parseInt(formData.graduationYear) : null,
-        college_gpa: formData.collegeGpa ? parseFloat(formData.collegeGpa) : null,
+        college_gpa: formData.collegeGpa && formData.collegeGpa !== 'first_semester' ? parseFloat(formData.collegeGpa) : null,
         high_school_gpa: formData.highSchoolGpa ? parseFloat(formData.highSchoolGpa) : null,
         availability_schedule: formData.availabilitySchedule.length > 0 ? formData.availabilitySchedule.join(', ') : null,
         preferred_subjects: formData.preferredSubjects,
@@ -1021,18 +1021,28 @@ export function TutorApplicationPage() {
             </div>
             <div>
               <label htmlFor="collegeGpa" className={labelClasses}>College GPA <span className="text-[#86868B]">*</span></label>
-              <input
+              <select
                 id="collegeGpa"
-                type="number"
-                min="0"
-                max="4.0"
-                step="0.01"
-                placeholder="Enter 0 if incoming freshman"
                 className={inputClasses}
                 value={formData.collegeGpa}
                 onChange={(e) => setFormData((prev) => ({ ...prev, collegeGpa: e.target.value }))}
                 required
-              />
+              >
+                <option value="">Select GPA</option>
+                <option value="first_semester">First semester — no GPA yet</option>
+                <option value="4.0">4.0</option>
+                <option value="3.9">3.9</option>
+                <option value="3.8">3.8</option>
+                <option value="3.7">3.7</option>
+                <option value="3.6">3.6</option>
+                <option value="3.5">3.5</option>
+                <option value="3.4">3.4</option>
+                <option value="3.3">3.3</option>
+                <option value="3.2">3.2</option>
+                <option value="3.1">3.1</option>
+                <option value="3.0">3.0</option>
+                <option value="2.9">2.9 or below</option>
+              </select>
             </div>
           </div>
 
