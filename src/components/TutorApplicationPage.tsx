@@ -1204,7 +1204,7 @@ export function TutorApplicationPage() {
             <label className={labelClasses}>
               When are you available to tutor? <span className="text-[#86868B]">*</span>
             </label>
-            <p className="text-[13px] text-[#AEAEB2] mb-3">Click to select your available time slots.</p>
+            <p className="text-[13px] text-[#AEAEB2] mb-3">Click to select your available time slots. Note: typical sessions are one hour each.</p>
             {(() => {
               const days = [
                 { key: 'monday', short: 'Mon' }, { key: 'tuesday', short: 'Tue' },
