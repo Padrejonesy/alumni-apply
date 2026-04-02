@@ -20,7 +20,7 @@ export function SplashScreen({ onComplete }: { onComplete: () => void }) {
         opacity: fadeOut ? 0 : 1,
       }}
     >
-      <img src="/at-monogram.png" alt="Alumni Tutoring" className="w-[120px] h-[120px]" />
+      <img src="/at-monogram.png" alt="Alumni Tutoring" className="w-[180px] h-[180px]" />
     </div>
   );
 }
