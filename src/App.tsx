@@ -1,10 +1,11 @@
-import { Suspense } from "react";
+import { Suspense, useState, useCallback } from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { ThemeProvider } from "next-themes";
 import { TutorApplicationPage } from './components/TutorApplicationPage';
+import { SplashScreen } from './components/SplashScreen';
 
 const PageLoader = () => (
   <div className="min-h-screen bg-white flex items-center justify-center">
@@ -43,9 +44,13 @@ function AppContent() {
 }
 
 export default function App() {
+  const [showSplash, setShowSplash] = useState(true);
+  const handleSplashComplete = useCallback(() => setShowSplash(false), []);
+
   return (
     <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false} forcedTheme="light">
       <TooltipProvider>
+        {showSplash && <SplashScreen onComplete={handleSplashComplete} />}
         <Router>
           <AppContent />
         </Router>
