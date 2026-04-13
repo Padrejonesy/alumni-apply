@@ -108,6 +108,7 @@ export function TutorApplicationPage() {
     linkedinUrl: "",
     priorExperience: "",
     apScores: [] as string[],
+    honors: [] as string[],
     resumeFile: null as File | null,
     headshotFile: null as File | null,
   });
@@ -378,6 +379,7 @@ export function TutorApplicationPage() {
         prior_experience: formData.priorExperience || null,
         resume_url: resumeUrl,
         headshot_url: headshotUrl,
+        honors: formData.honors.length > 0 ? formData.honors : null,
         subjects: formData.preferredSubjects,
         grade_levels: [],
         status: "pending",
@@ -1156,6 +1158,38 @@ export function TutorApplicationPage() {
                 <option value="3.0">3.0</option>
                 <option value="2.9">2.9 or below</option>
               </select>
+            </div>
+          </div>
+
+          {/* Honors & Distinctions */}
+          <div className="mb-5">
+            <p className={labelClasses}>Honors & Distinctions</p>
+            <p className="text-[12px] text-[#86868B] mb-3">Select any that apply to your high school career.</p>
+            <div className="flex flex-wrap gap-2">
+              {['Valedictorian', 'Salutatorian', 'Class President'].map((honor) => {
+                const selected = formData.honors.includes(honor);
+                return (
+                  <button
+                    key={honor}
+                    type="button"
+                    onClick={() => {
+                      setFormData((prev) => ({
+                        ...prev,
+                        honors: selected
+                          ? prev.honors.filter((h) => h !== honor)
+                          : [...prev.honors, honor],
+                      }));
+                    }}
+                    className={`px-4 py-2 text-[13px] font-medium rounded-full border transition-all ${
+                      selected
+                        ? 'bg-[#1D1D1F] text-white border-[#1D1D1F]'
+                        : 'text-[#1D1D1F] border-[#E5E5EA] hover:border-[#D1D1D6] bg-white'
+                    }`}
+                  >
+                    {honor}
+                  </button>
+                );
+              })}
             </div>
           </div>
 
