@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/lib/supabase-tab-client";
 import { toast } from "@/hooks/use-toast";
 import { Loader2, Upload, CheckCircle2, Video, Square, Circle, Clock } from "lucide-react";
+import { CustomSelect } from "@/components/ui/custom-select";
 
 export function TutorApplicationPage() {
   useEffect(() => {
@@ -283,15 +284,13 @@ export function TutorApplicationPage() {
       return;
     }
 
-    const bioWordCount = formData.bio.trim().split(/\s+/).filter(Boolean).length;
-    if (bioWordCount < 50) {
-      toast({ title: "About Yourself is too short", description: `Please write at least 50 words (currently ${bioWordCount}).`, variant: "destructive" });
+    if (!formData.bio || formData.bio.length < 10) {
+      toast({ title: "About Yourself is too short", description: "Please write at least 10 characters.", variant: "destructive" });
       return;
     }
 
-    const expWordCount = formData.priorExperience.trim().split(/\s+/).filter(Boolean).length;
-    if (expWordCount < 30) {
-      toast({ title: "Prior Experience is too short", description: `Please write at least 30 words (currently ${expWordCount}).`, variant: "destructive" });
+    if (!formData.priorExperience || formData.priorExperience.length < 10) {
+      toast({ title: "Prior Experience is too short", description: "Please write at least 10 characters.", variant: "destructive" });
       return;
     }
 
@@ -961,7 +960,7 @@ export function TutorApplicationPage() {
                 id="firstName"
                 className={inputClasses}
                 value={formData.firstName}
-                onChange={(e) => setFormData((prev) => ({ ...prev, firstName: e.target.value }))}
+                onChange={(e) => setFormData((prev) => ({ ...prev, firstName: e.target.value.replace(/[0-9]/g, '') }))}
                 required
               />
             </div>
@@ -973,7 +972,7 @@ export function TutorApplicationPage() {
                 id="lastName"
                 className={inputClasses}
                 value={formData.lastName}
-                onChange={(e) => setFormData((prev) => ({ ...prev, lastName: e.target.value }))}
+                onChange={(e) => setFormData((prev) => ({ ...prev, lastName: e.target.value.replace(/[0-9]/g, '') }))}
                 required
               />
             </div>
@@ -981,17 +980,13 @@ export function TutorApplicationPage() {
               <label htmlFor="gender" className={labelClasses}>
                 Gender <span className="text-[#86868B]">*</span>
               </label>
-              <select
+              <CustomSelect
                 id="gender"
-                className={inputClasses}
-                value={formData.gender}
-                onChange={(e) => setFormData((prev) => ({ ...prev, gender: e.target.value }))}
-                required
-              >
-                <option value="" disabled>Select</option>
-                <option value="Male">Male</option>
-                <option value="Female">Female</option>
-              </select>
+                options={["Male", "Female"]}
+                value={formData.gender || ""}
+                onChange={(v) => setFormData((prev) => ({ ...prev, gender: v }))}
+                placeholder="Select"
+              />
             </div>
           </div>
 
@@ -1018,30 +1013,27 @@ export function TutorApplicationPage() {
                 id="phone"
                 type="tel"
                 className={inputClasses}
+                maxLength={16}
                 value={formData.phone}
-                onChange={(e) => setFormData((prev) => ({ ...prev, phone: e.target.value }))}
+                onChange={(e) => setFormData((prev) => ({ ...prev, phone: e.target.value.replace(/[a-zA-Z]/g, '') }))}
                 required
               />
             </div>
           </div>
 
-          {/* High School */}
           <div className="mb-5">
             <label htmlFor="highSchool" className={labelClasses}>
               High School Attended <span className="text-[#86868B]">*</span>
             </label>
-            <input
+            <CustomSelect
               id="highSchool"
-              list="highSchoolOptions"
+              options={['Darien High School','Greenwich High School','New Canaan High School','Ridgefield High School','Staples High School','Brunswick School','Choate Rosemary Hall','Fairfield Prep','Fox Lane High School','GCDS','Hackley School','King School','New Canaan Country School','Rye Country Day School','Sacred Heart Greenwich','St. Luke\'s School','St. Mark\'s School','Weston High School','Wilton High School']}
+              value={formData.highSchool || ""}
+              onChange={(v) => setFormData((prev) => ({ ...prev, highSchool: v }))}
               placeholder="Start typing your high school..."
-              className={inputClasses}
-              value={formData.highSchool}
-              onChange={(e) => setFormData((prev) => ({ ...prev, highSchool: e.target.value }))}
-              required
+              searchPlaceholder="Search high schools..."
+              emptyText="High school not found."
             />
-            <datalist id="highSchoolOptions">
-              {['Darien High School','Greenwich High School','New Canaan High School','Ridgefield High School','Staples High School','Brunswick School','Choate Rosemary Hall','Fairfield Prep','Fox Lane High School','GCDS','Hackley School','King School','New Canaan Country School','Rye Country Day School','Sacred Heart Greenwich','St. Luke\'s School','St. Mark\'s School','Weston High School','Wilton High School'].map(s => <option key={s} value={s} />)}
-            </datalist>
           </div>
 
           {/* College */}
@@ -1049,18 +1041,15 @@ export function TutorApplicationPage() {
             <label htmlFor="college" className={labelClasses}>
               College/University <span className="text-[#86868B]">*</span>
             </label>
-            <input
+            <CustomSelect
               id="college"
-              list="collegeOptions"
+              options={['Amherst College','Boston College','Boston University','Bowdoin College','Brown University','Bucknell University','Claremont McKenna College','Colby College','Colgate University','Columbia University','Connecticut College','Cornell University','Dartmouth College','Davidson College','Duke University','Emory University','Fairfield University','Fordham University','George Washington University','Georgetown University','Georgia Tech','Hamilton College','Harvard University','Holy Cross','Indiana University','Johns Hopkins University','Lafayette College','Lehigh University','Middlebury College','MIT','New York University','Northwestern University','Notre Dame','Penn State','Princeton University','Providence College','Rice University','SMU','Stanford University','Syracuse University','Trinity College','Tufts University','Tulane University','UC Berkeley','UCLA','UConn','University of Michigan','University of Pennsylvania','University of Richmond','University of Virginia','University of Wisconsin','USC','Vanderbilt University','Vassar College','Villanova University','Wake Forest University','Washington and Lee University','Washington University in St. Louis','Wellesley College','Wesleyan University','Williams College','Yale University']}
+              value={formData.college || ""}
+              onChange={(v) => setFormData((prev) => ({ ...prev, college: v }))}
               placeholder="Start typing your college..."
-              className={inputClasses}
-              value={formData.college}
-              onChange={(e) => setFormData((prev) => ({ ...prev, college: e.target.value }))}
-              required
+              searchPlaceholder="Search colleges..."
+              emptyText="College not found."
             />
-            <datalist id="collegeOptions">
-              {['Amherst College','Boston College','Boston University','Bowdoin College','Brown University','Bucknell University','Claremont McKenna College','Colby College','Colgate University','Columbia University','Connecticut College','Cornell University','Dartmouth College','Davidson College','Duke University','Emory University','Fairfield University','Fordham University','George Washington University','Georgetown University','Georgia Tech','Hamilton College','Harvard University','Holy Cross','Indiana University','Johns Hopkins University','Lafayette College','Lehigh University','Middlebury College','MIT','New York University','Northwestern University','Notre Dame','Penn State','Princeton University','Providence College','Rice University','SMU','Stanford University','Syracuse University','Trinity College','Tufts University','Tulane University','UC Berkeley','UCLA','UConn','University of Michigan','University of Pennsylvania','University of Richmond','University of Virginia','University of Wisconsin','USC','Vanderbilt University','Vassar College','Villanova University','Wake Forest University','Washington and Lee University','Washington University in St. Louis','Wellesley College','Wesleyan University','Williams College','Yale University'].map(s => <option key={s} value={s} />)}
-            </datalist>
           </div>
 
           {/* Major / Minor */}
@@ -1069,32 +1058,27 @@ export function TutorApplicationPage() {
               <label htmlFor="major" className={labelClasses}>
                 Major <span className="text-[#86868B]">*</span>
               </label>
-              <input
+              <CustomSelect
                 id="major"
-                list="majorOptions"
+                options={['Accounting','Anthropology','Applied Mathematics','Architecture','Art History','Biochemistry','Biology','Biomedical Engineering','Business Administration','Chemical Engineering','Chemistry','Civil Engineering','Classics','Cognitive Science','Communications','Computer Engineering','Computer Science','Data Science','Earth Science','Economics','Education','Electrical Engineering','English','Environmental Science','Environmental Studies','Film Studies','Finance','French','Gender Studies','German','Government','History','Human Biology','Industrial Engineering','Information Science','International Relations','Italian','Journalism','Kinesiology','Latin American Studies','Linguistics','Management','Marketing','Mathematics','Mechanical Engineering','Media Studies','Music','Neuroscience','Nursing','Nutrition','Philosophy','Physics','Political Science','Pre-Med','Psychology','Public Health','Public Policy','Religious Studies','Sociology','Spanish','Statistics','Theater','Urban Studies']}
+                value={formData.major || ""}
+                onChange={(v) => setFormData((prev) => ({ ...prev, major: v }))}
                 placeholder="Start typing your major..."
-                className={inputClasses}
-                value={formData.major}
-                onChange={(e) => setFormData((prev) => ({ ...prev, major: e.target.value }))}
-                required
+                searchPlaceholder="Search majors..."
+                emptyText="Major not found."
               />
-              <datalist id="majorOptions">
-                {['Accounting','Anthropology','Applied Mathematics','Architecture','Art History','Biochemistry','Biology','Biomedical Engineering','Business Administration','Chemical Engineering','Chemistry','Civil Engineering','Classics','Cognitive Science','Communications','Computer Engineering','Computer Science','Data Science','Earth Science','Economics','Education','Electrical Engineering','English','Environmental Science','Environmental Studies','Film Studies','Finance','French','Gender Studies','German','Government','History','Human Biology','Industrial Engineering','Information Science','International Relations','Italian','Journalism','Kinesiology','Latin American Studies','Linguistics','Management','Marketing','Mathematics','Mechanical Engineering','Media Studies','Music','Neuroscience','Nursing','Nutrition','Philosophy','Physics','Political Science','Pre-Med','Psychology','Public Health','Public Policy','Religious Studies','Sociology','Spanish','Statistics','Theater','Urban Studies'].map(s => <option key={s} value={s} />)}
-              </datalist>
             </div>
             <div>
               <label htmlFor="minor" className={labelClasses}>Minor</label>
-              <input
+              <CustomSelect
                 id="minor"
-                list="minorOptions"
+                options={['Accounting','Anthropology','Applied Mathematics','Architecture','Art History','Biochemistry','Biology','Business','Chemistry','Classics','Cognitive Science','Communications','Computer Science','Data Science','Economics','Education','English','Environmental Science','Film Studies','Finance','French','German','Government','History','Italian','Journalism','Linguistics','Marketing','Mathematics','Music','Neuroscience','Philosophy','Physics','Political Science','Psychology','Public Health','Public Policy','Religious Studies','Sociology','Spanish','Statistics','Theater','Urban Studies']}
+                value={formData.minor || ""}
+                onChange={(v) => setFormData((prev) => ({ ...prev, minor: v }))}
                 placeholder="Start typing your minor..."
-                className={inputClasses}
-                value={formData.minor}
-                onChange={(e) => setFormData((prev) => ({ ...prev, minor: e.target.value }))}
+                searchPlaceholder="Search minors..."
+                emptyText="Minor not found."
               />
-              <datalist id="minorOptions">
-                {['Accounting','Anthropology','Applied Mathematics','Architecture','Art History','Biochemistry','Biology','Business','Chemistry','Classics','Cognitive Science','Communications','Computer Science','Data Science','Economics','Education','English','Environmental Science','Film Studies','Finance','French','German','Government','History','Italian','Journalism','Linguistics','Marketing','Mathematics','Music','Neuroscience','Philosophy','Physics','Political Science','Psychology','Public Health','Public Policy','Religious Studies','Sociology','Spanish','Statistics','Theater','Urban Studies'].map(s => <option key={s} value={s} />)}
-              </datalist>
             </div>
           </div>
 
@@ -1103,18 +1087,14 @@ export function TutorApplicationPage() {
             <label htmlFor="graduationYear" className={labelClasses}>
               Expected College Graduation Year <span className="text-[#86868B]">*</span>
             </label>
-            <select
+            <CustomSelect
               id="graduationYear"
-              className={inputClasses}
-              value={formData.graduationYear}
-              onChange={(e) => setFormData((prev) => ({ ...prev, graduationYear: e.target.value }))}
-              required
-            >
-              <option value="">Select year</option>
-              {[2025, 2026, 2027, 2028, 2029, 2030, 2031, 2032].map(y => (
-                <option key={y} value={y}>{y}</option>
-              ))}
-            </select>
+              options={[2025, 2026, 2027, 2028, 2029, 2030, 2031, 2032].map(String)}
+              value={formData.graduationYear || ""}
+              onChange={(v) => setFormData((prev) => ({ ...prev, graduationYear: v }))}
+              placeholder="Select year"
+              searchPlaceholder="Search year..."
+            />
           </div>
 
           {/* GPAs */}
@@ -1123,41 +1103,39 @@ export function TutorApplicationPage() {
               <label htmlFor="highSchoolGpa" className={labelClasses}>High School GPA <span className="text-[#86868B]">*</span></label>
               <input
                 id="highSchoolGpa"
-                type="number"
-                min="0"
-                max="5.0"
-                step="0.01"
+                type="text"
+                inputMode="decimal"
                 placeholder="e.g., 3.95"
                 className={inputClasses}
                 value={formData.highSchoolGpa}
-                onChange={(e) => setFormData((prev) => ({ ...prev, highSchoolGpa: e.target.value }))}
+                onChange={(e) => setFormData((prev) => ({ ...prev, highSchoolGpa: e.target.value.replace(/[a-zA-Z]/g, '') }))}
                 required
               />
             </div>
             <div>
               <label htmlFor="collegeGpa" className={labelClasses}>College GPA <span className="text-[#86868B]">*</span></label>
-              <select
+              <CustomSelect
                 id="collegeGpa"
-                className={inputClasses}
-                value={formData.collegeGpa}
-                onChange={(e) => setFormData((prev) => ({ ...prev, collegeGpa: e.target.value }))}
-                required
-              >
-                <option value="">Select GPA</option>
-                <option value="first_semester">First semester — no GPA yet</option>
-                <option value="4.0">4.0</option>
-                <option value="3.9">3.9</option>
-                <option value="3.8">3.8</option>
-                <option value="3.7">3.7</option>
-                <option value="3.6">3.6</option>
-                <option value="3.5">3.5</option>
-                <option value="3.4">3.4</option>
-                <option value="3.3">3.3</option>
-                <option value="3.2">3.2</option>
-                <option value="3.1">3.1</option>
-                <option value="3.0">3.0</option>
-                <option value="2.9">2.9 or below</option>
-              </select>
+                options={[
+                  { value: "first_semester", label: "First semester — no GPA yet" },
+                  { value: "4.0", label: "4.0" },
+                  { value: "3.9", label: "3.9" },
+                  { value: "3.8", label: "3.8" },
+                  { value: "3.7", label: "3.7" },
+                  { value: "3.6", label: "3.6" },
+                  { value: "3.5", label: "3.5" },
+                  { value: "3.4", label: "3.4" },
+                  { value: "3.3", label: "3.3" },
+                  { value: "3.2", label: "3.2" },
+                  { value: "3.1", label: "3.1" },
+                  { value: "3.0", label: "3.0" },
+                  { value: "2.9", label: "2.9 or below" }
+                ]}
+                value={formData.collegeGpa || ""}
+                onChange={(v) => setFormData((prev) => ({ ...prev, collegeGpa: v }))}
+                placeholder="Select GPA"
+                searchPlaceholder="Search GPA..."
+              />
             </div>
           </div>
 
@@ -1211,21 +1189,25 @@ export function TutorApplicationPage() {
               <div className="grid gap-4 sm:grid-cols-3">
                 <div>
                   <label htmlFor="satMath" className="text-[12px] text-[#86868B] mb-1 block">Math</label>
-                  <select id="satMath" className={inputClasses} value={formData.satMath} onChange={(e) => setFormData((prev) => ({ ...prev, satMath: e.target.value }))}>
-                    <option value="">Select score</option>
-                    {Array.from({ length: 61 }, (_, i) => 800 - i * 10).map(v => (
-                      <option key={v} value={v}>{v}</option>
-                    ))}
-                  </select>
+                  <CustomSelect
+                    id="satMath"
+                    options={Array.from({ length: 61 }, (_, i) => String(800 - i * 10))}
+                    value={formData.satMath || ""}
+                    onChange={(v) => setFormData((prev) => ({ ...prev, satMath: v }))}
+                    placeholder="Select score"
+                    searchPlaceholder="Search score..."
+                  />
                 </div>
                 <div>
                   <label htmlFor="satReading" className="text-[12px] text-[#86868B] mb-1 block">Reading & Writing</label>
-                  <select id="satReading" className={inputClasses} value={formData.satReading} onChange={(e) => setFormData((prev) => ({ ...prev, satReading: e.target.value }))}>
-                    <option value="">Select score</option>
-                    {Array.from({ length: 61 }, (_, i) => 800 - i * 10).map(v => (
-                      <option key={v} value={v}>{v}</option>
-                    ))}
-                  </select>
+                  <CustomSelect
+                    id="satReading"
+                    options={Array.from({ length: 61 }, (_, i) => String(800 - i * 10))}
+                    value={formData.satReading || ""}
+                    onChange={(v) => setFormData((prev) => ({ ...prev, satReading: v }))}
+                    placeholder="Select score"
+                    searchPlaceholder="Search score..."
+                  />
                 </div>
                 <div>
                   <label className="text-[12px] text-[#86868B] mb-1 block">Superscore</label>
@@ -1255,39 +1237,43 @@ export function TutorApplicationPage() {
               <div className="grid gap-4 grid-cols-2 sm:grid-cols-5">
                 <div>
                   <label htmlFor="actEnglish" className="text-[12px] text-[#86868B] mb-1 block">English</label>
-                  <select id="actEnglish" className={inputClasses} value={formData.actEnglish} onChange={(e) => setFormData((prev) => ({ ...prev, actEnglish: e.target.value }))}>
-                    <option value="">—</option>
-                    {Array.from({ length: 36 }, (_, i) => 36 - i).map(v => (
-                      <option key={v} value={v}>{v}</option>
-                    ))}
-                  </select>
+                  <CustomSelect
+                    id="actEnglish"
+                    options={Array.from({ length: 36 }, (_, i) => String(36 - i))}
+                    value={formData.actEnglish || ""}
+                    onChange={(v) => setFormData((prev) => ({ ...prev, actEnglish: v }))}
+                    placeholder="—"
+                  />
                 </div>
                 <div>
                   <label htmlFor="actMath" className="text-[12px] text-[#86868B] mb-1 block">Math</label>
-                  <select id="actMath" className={inputClasses} value={formData.actMath} onChange={(e) => setFormData((prev) => ({ ...prev, actMath: e.target.value }))}>
-                    <option value="">—</option>
-                    {Array.from({ length: 36 }, (_, i) => 36 - i).map(v => (
-                      <option key={v} value={v}>{v}</option>
-                    ))}
-                  </select>
+                  <CustomSelect
+                    id="actMath"
+                    options={Array.from({ length: 36 }, (_, i) => String(36 - i))}
+                    value={formData.actMath || ""}
+                    onChange={(v) => setFormData((prev) => ({ ...prev, actMath: v }))}
+                    placeholder="—"
+                  />
                 </div>
                 <div>
                   <label htmlFor="actReading" className="text-[12px] text-[#86868B] mb-1 block">Reading</label>
-                  <select id="actReading" className={inputClasses} value={formData.actReading} onChange={(e) => setFormData((prev) => ({ ...prev, actReading: e.target.value }))}>
-                    <option value="">—</option>
-                    {Array.from({ length: 36 }, (_, i) => 36 - i).map(v => (
-                      <option key={v} value={v}>{v}</option>
-                    ))}
-                  </select>
+                  <CustomSelect
+                    id="actReading"
+                    options={Array.from({ length: 36 }, (_, i) => String(36 - i))}
+                    value={formData.actReading || ""}
+                    onChange={(v) => setFormData((prev) => ({ ...prev, actReading: v }))}
+                    placeholder="—"
+                  />
                 </div>
                 <div>
                   <label htmlFor="actScience" className="text-[12px] text-[#86868B] mb-1 block">Science</label>
-                  <select id="actScience" className={inputClasses} value={formData.actScience} onChange={(e) => setFormData((prev) => ({ ...prev, actScience: e.target.value }))}>
-                    <option value="">—</option>
-                    {Array.from({ length: 36 }, (_, i) => 36 - i).map(v => (
-                      <option key={v} value={v}>{v}</option>
-                    ))}
-                  </select>
+                  <CustomSelect
+                    id="actScience"
+                    options={Array.from({ length: 36 }, (_, i) => String(36 - i))}
+                    value={formData.actScience || ""}
+                    onChange={(v) => setFormData((prev) => ({ ...prev, actScience: v }))}
+                    placeholder="—"
+                  />
                 </div>
                 <div>
                   <label className="text-[12px] text-[#86868B] mb-1 block">Composite</label>
@@ -1307,13 +1293,13 @@ export function TutorApplicationPage() {
               <label htmlFor="apFivesCount" className={labelClasses}>Number of AP 5's Earned</label>
               <input
                 id="apFivesCount"
-                type="number"
-                min="0"
-                max="38"
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
                 placeholder="e.g., 8"
                 className={inputClasses}
                 value={formData.apFivesCount}
-                onChange={(e) => setFormData((prev) => ({ ...prev, apFivesCount: e.target.value }))}
+                onChange={(e) => setFormData((prev) => ({ ...prev, apFivesCount: e.target.value.replace(/[a-zA-Z]/g, '') }))}
               />
             </div>
           </div>
@@ -1324,23 +1310,15 @@ export function TutorApplicationPage() {
               AP Exams Scored 4 or 5 <span className="text-[#86868B]">*</span>
             </label>
             <p className="text-[13px] text-[#AEAEB2] mb-3">Select all AP exams where you earned a 4 or 5.</p>
-            <div className="grid grid-cols-2 gap-2">
-              {apClassOptions.map((ap) => (
-                <button
-                  key={ap}
-                  type="button"
-                  onClick={() => toggleApScore(ap)}
-                  aria-pressed={formData.apScores.includes(ap)}
-                  className={`text-left px-3 py-2 rounded-[8px] text-[13px] transition-colors border ${
-                    formData.apScores.includes(ap)
-                      ? 'bg-[#1D1D1F] text-white border-[#1D1D1F]'
-                      : 'bg-white text-[#1D1D1F] border-[#E5E5EA] hover:border-[#D1D1D6]'
-                  }`}
-                >
-                  {ap}
-                </button>
-              ))}
-            </div>
+            <CustomSelect
+              id="apScores"
+              options={apClassOptions}
+              value={formData.apScores}
+              onChange={(val) => setFormData(prev => ({ ...prev, apScores: val as string[] }))}
+              placeholder="Select AP exams..."
+              searchPlaceholder="Search exams..."
+              multiple
+            />
             {formData.apScores.length > 0 && (
               <p className="text-[13px] text-[#86868B] mt-2">{formData.apScores.length} selected</p>
             )}
@@ -1352,28 +1330,15 @@ export function TutorApplicationPage() {
               What subjects do you want to tutor? <span className="text-[#86868B]">*</span>
             </label>
             <p className="text-[13px] text-[#AEAEB2] mb-3">Select all that apply.</p>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-              {['Mathematics', 'Science', 'English', 'History', 'Economics', 'Computer Science', 'Languages', 'SAT Prep', 'ACT Prep', 'Test Prep', 'College Counseling', 'Writing'].map(subj => (
-                <button
-                  key={subj}
-                  type="button"
-                  aria-pressed={formData.preferredSubjects.includes(subj)}
-                  onClick={() => setFormData(prev => ({
-                    ...prev,
-                    preferredSubjects: prev.preferredSubjects.includes(subj)
-                      ? prev.preferredSubjects.filter(s => s !== subj)
-                      : [...prev.preferredSubjects, subj],
-                  }))}
-                  className={`text-left px-3 py-2 rounded-[8px] text-[13px] transition-colors border ${
-                    formData.preferredSubjects.includes(subj)
-                      ? 'bg-[#1D1D1F] text-white border-[#1D1D1F]'
-                      : 'bg-white text-[#1D1D1F] border-[#E5E5EA] hover:border-[#D1D1D6]'
-                  }`}
-                >
-                  {subj}
-                </button>
-              ))}
-            </div>
+            <CustomSelect
+              id="preferredSubjects"
+              options={['Mathematics', 'Science', 'English', 'History', 'Economics', 'Computer Science', 'Languages', 'SAT Prep', 'ACT Prep', 'Test Prep', 'College Counseling', 'Writing']}
+              value={formData.preferredSubjects}
+              onChange={(val) => setFormData(prev => ({ ...prev, preferredSubjects: val as string[] }))}
+              placeholder="Select subjects..."
+              searchPlaceholder="Search subjects..."
+              multiple
+            />
           </div>
 
           {/* Availability — Weekly Time Grid */}
@@ -1457,14 +1422,15 @@ export function TutorApplicationPage() {
             <label htmlFor="bio" className={labelClasses}>About Yourself <span className="text-[#86868B]">*</span></label>
             <textarea
               id="bio"
-              placeholder="Tell us about your background, teaching philosophy, and why you want to tutor. What makes you a great fit for Alumni Tutoring? (minimum 50 words)"
+              placeholder="Tell us about your background, teaching philosophy, and why you want to tutor. What makes you a great fit for Alumni Tutoring? (maximum 100 characters)"
               className={`${inputClasses} min-h-[120px] resize-y`}
+              maxLength={100}
               value={formData.bio}
               onChange={(e) => setFormData((prev) => ({ ...prev, bio: e.target.value }))}
               required
             />
-            <p className={`text-[11px] mt-1 ${formData.bio.trim().split(/\s+/).filter(Boolean).length >= 50 ? 'text-green-600' : 'text-[#AEAEB2]'}`}>
-              {formData.bio.trim().split(/\s+/).filter(Boolean).length}/50 words minimum
+            <p className={`text-[11px] mt-1 ${formData.bio.length >= 100 ? 'text-red-500' : 'text-[#AEAEB2]'}`}>
+              {formData.bio.length}/100 characters
             </p>
           </div>
 
@@ -1486,14 +1452,15 @@ export function TutorApplicationPage() {
             <label htmlFor="priorExperience" className={labelClasses}>Prior Tutoring Experience <span className="text-[#86868B]">*</span></label>
             <textarea
               id="priorExperience"
-              placeholder="Describe any prior tutoring, teaching, or mentoring experience. Include subjects taught, ages/grades, duration, and any results or impact. (minimum 30 words)"
+              placeholder="Describe any prior tutoring, teaching, or mentoring experience. Include subjects taught, ages/grades, duration, and any results or impact. (maximum 50 characters)"
               className={`${inputClasses} min-h-[120px] resize-y`}
+              maxLength={50}
               value={formData.priorExperience}
               onChange={(e) => setFormData((prev) => ({ ...prev, priorExperience: e.target.value }))}
               required
             />
-            <p className={`text-[11px] mt-1 ${formData.priorExperience.trim().split(/\s+/).filter(Boolean).length >= 30 ? 'text-green-600' : 'text-[#AEAEB2]'}`}>
-              {formData.priorExperience.trim().split(/\s+/).filter(Boolean).length}/30 words minimum
+            <p className={`text-[11px] mt-1 ${formData.priorExperience.length >= 50 ? 'text-red-500' : 'text-[#AEAEB2]'}`}>
+              {formData.priorExperience.length}/50 characters
             </p>
           </div>
 
@@ -1506,7 +1473,7 @@ export function TutorApplicationPage() {
                 placeholder="e.g., Professor Jane Smith"
                 className={inputClasses}
                 value={formData.referenceName}
-                onChange={(e) => setFormData((prev) => ({ ...prev, referenceName: e.target.value }))}
+                onChange={(e) => setFormData((prev) => ({ ...prev, referenceName: e.target.value.replace(/[0-9]/g, '') }))}
               />
             </div>
             <div>
@@ -1525,23 +1492,14 @@ export function TutorApplicationPage() {
           {/* How did you hear about us */}
           <div className="mb-5">
             <label htmlFor="referralSource" className={labelClasses}>How did you hear about us? <span className="text-[#86868B]">*</span></label>
-            <select
+            <CustomSelect
               id="referralSource"
-              className={inputClasses}
-              value={formData.referralSource}
-              onChange={(e) => setFormData((prev) => ({ ...prev, referralSource: e.target.value }))}
-              required
-            >
-              <option value="">Select one</option>
-              <option value="Recruiter">Recruiter</option>
-              <option value="Instagram">Instagram</option>
-              <option value="Friend/Referral">Friend / Referral</option>
-              <option value="School">School</option>
-              <option value="Google">Google</option>
-              <option value="LinkedIn">LinkedIn</option>
-              <option value="TikTok">TikTok</option>
-              <option value="Other">Other</option>
-            </select>
+              options={['Recruiter', 'Instagram', 'Friend / Referral', 'School', 'Google', 'LinkedIn', 'TikTok', 'Other']}
+              value={formData.referralSource || ""}
+              onChange={(v) => setFormData((prev) => ({ ...prev, referralSource: v }))}
+              placeholder="Select one"
+              searchPlaceholder="Search source..."
+            />
           </div>
 
           {/* Resume Upload */}
